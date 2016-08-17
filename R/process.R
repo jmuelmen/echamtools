@@ -23,7 +23,7 @@
 process.precip.profile.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
              experiment = "amip-rain-15", years = 1979:1983,
-             ncores = 36) {
+             ncores = 12) {
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
             ## expand.grid(year = 2000, month = 1) %>%
@@ -33,7 +33,7 @@ process.precip.profile.echam <-
                     fname <- sprintf("%s/%s/%s_%d%02d.01_rain3d.nc",
                                      datadir, experiment, experiment, year, month)
                     out.name <- gsub(".nc", ".rds", fname)
-                    df <- try(readRDS(out.name))
+                    df <- try(readRDS(out.name), silent = TRUE)
                     if (class(df) == "try-error") {
                         nc <- ncdf4::nc_open(fname)
                         t <- ncdf4::ncvar_get(nc, "time")
