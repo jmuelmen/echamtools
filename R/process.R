@@ -96,7 +96,7 @@ process.pr.echam <-
                         ## if subsampling is requested, do it here
                         (if (is.null(subsample))
                              .
-                         else dplyr::slice(., seq(1, nrow(df), by = subsample))) %>%
+                         else dplyr::slice(., seq(1, nrow(.), by = subsample))) %>%
                         plyr::ddply(~ lon + lat, function(x) {
                             x %>%
                                 dplyr::mutate(pr.class = cut(3600 * (pr - prc),
