@@ -57,12 +57,13 @@ process.precip.profile.echam <-
                         saveRDS(df, out.name)
                     }
                     ## if subsampling is requested, do it here
-                    if (is.null(subsample))
-                        df
-                    else {
-                        t <- unique(df$time)
-                        dplyr::filter(df, time %in% t[seq(1, length(t), by = subsample)])
-                    }
+                    (if (is.null(subsample))
+                         df
+                     else {
+                         t <- unique(df$time)
+                         dplyr::filter(df, time %in% t[seq(1, length(t), by = subsample)])
+                     }) %>%
+                        plyr::ddply(~ lon + lat, function(x) table(x$mask))
                 })
             }, .parallel = TRUE) -> df
         
