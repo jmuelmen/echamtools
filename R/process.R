@@ -57,9 +57,9 @@ process.precip.profile.echam <-
                         saveRDS(df, out.name)
                     }
                     ## if subsampling is requested, do it here
-                    ifelse(is.null(subsample),
-                           df,
-                           dplyr::slice(df, seq(1, nrow(df), subsample))) %>%
+                    (if (is.null(subsample))
+                         df
+                     else dplyr::slice(df, seq(1, nrow(df), subsample))) %>%
                         plyr::ddply(~ lon + lat, function(x) table(x$mask))
                 })
             }, .parallel = TRUE) -> df
@@ -94,9 +94,9 @@ process.pr.echam <-
                         cbind(pr = as.vector(pr),
                               prc = as.vector(prc)) %>%
                         ## if subsampling is requested, do it here
-                        ifelse(is.null(subsample),
-                               df,
-                               dplyr::slice(df, seq(1, nrow(df), subsample))) %>%
+                        (if (is.null(subsample))
+                             df
+                         else dplyr::slice(df, seq(1, nrow(df), subsample))) %>%
                         plyr::ddply(~ lon + lat, function(x) {
                             x %>%
                                 dplyr::mutate(pr.class = cut(3600 * (pr - prc),
