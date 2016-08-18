@@ -57,10 +57,12 @@ process.precip.profile.echam <-
                         saveRDS(df, out.name)
                     }
                     ## if subsampling is requested, do it here
-                    (if (is.null(subsample))
-                         df
-                     else dplyr::slice(df, seq(1, nrow(df), by = subsample))) %>%
-                        plyr::ddply(~ lon + lat, function(x) table(x$mask))
+                    if (is.null(subsample))
+                        df
+                    else {
+                        t <- unique(df$time)
+                        dplyr::filter(df, time %in% t[seq(1, length(t), by = subsample)])
+                    }
                 })
             }, .parallel = TRUE) -> df
         
@@ -90,13 +92,13 @@ process.pr.echam <-
                     ncdf4::nc_close(nc)
                     df <- expand.grid(lon = as.vector(lon),
                                       lat = as.vector(lat),
-                                      t = as.vector(t)) %>%
+                                      time = as.vector(t)) %>%
                         cbind(pr = as.vector(pr),
                               prc = as.vector(prc))
                     ## if subsampling is requested, do it here
                     (if (is.null(subsample))
                          df
-                     else dplyr::slice(df, seq(1, nrow(df), by = subsample))) %>%
+                     else dplyr::filter(df, time %in% t[seq(1, length(t), by = subsample)])) %>%
                         plyr::ddply(~ lon + lat, function(x) {
                             x %>%
                                 dplyr::mutate(pr.class = cut(3600 * (pr - prc),
@@ -151,7 +153,7 @@ process.rad.echam <-
                     ncdf4::nc_close(nc)
                     df <- expand.grid(lon = as.vector(lon),
                                       lat = as.vector(lat),
-                                      t = as.vector(t)) %>%
+                                      time = as.vector(t)) %>%
                         cbind(srad0d = as.vector(srad0d ),
                               srad0  = as.vector(srad0  ),
                               trad0  = as.vector(trad0  ),

@@ -6,7 +6,8 @@
 \usage{
 
   process.precip.profile.echam(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
-  experiment = "amip-rain-15", years = 1979:1983, ncores = 12)
+  experiment = "amip-rain-15", out.prefix = "", years = 1979:1983,
+  ncores = 12, subsample = NULL)
 }
 \arguments{
 \item{datadir}{Path to data; this directory should containt \code{experiment} as a subdirectory.}
