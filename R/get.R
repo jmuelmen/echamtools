@@ -10,7 +10,7 @@ get.phase.at.locations.echam <- function(locations) {
 }
 
 #' @export
-get.pr.echam <- function(ccrauts = c(0, 1, 2, 3.75, 7.5, 15, 30, 60)) {
+get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
     ldply(sprintf("amip-rain-%g", ccrauts),
           function(experiment) {
               readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
@@ -19,7 +19,7 @@ get.pr.echam <- function(ccrauts = c(0, 1, 2, 3.75, 7.5, 15, 30, 60)) {
 }
 
 #' @export
-get.rad.echam <- function(ccrauts = c(0, 1, 2, 3.75, 7.5, 15, 30, 60)) {
+get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
     ldply(sprintf("amip-rain-%g", ccrauts),
           function(experiment) {
               readRDS(sprintf("rad-%s.rds", experiment)) %>%
@@ -28,7 +28,7 @@ get.rad.echam <- function(ccrauts = c(0, 1, 2, 3.75, 7.5, 15, 30, 60)) {
 }
 
 #' @export
-get.mask.echam <- function(ccrauts = c(0, 1, 2, 3.75, 7.5, 15, 30, 60)) {
+get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
     ldply(sprintf("amip-rain-%g", ccrauts),
           function(experiment) {
               readRDS(sprintf("%s.rds", experiment)) %>%

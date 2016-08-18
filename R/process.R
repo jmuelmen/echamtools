@@ -22,8 +22,10 @@
 #' @export
 process.precip.profile.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
-             experiment = "amip-rain-15", years = 1979:1983,
-             ncores = 12) {
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             subsample = NULL) {
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
             ## expand.grid(year = 2000, month = 1) %>%
@@ -54,19 +56,24 @@ process.precip.profile.echam <-
                         ncdf4::nc_close(nc)
                         saveRDS(df, out.name)
                     }
-                    df %>%
+                    ## if subsampling is requested, do it here
+                    ifelse(is.null(subsample),
+                           df,
+                           dplyr::slice(df, seq(1, nrow(df), subsample))) %>%
                         plyr::ddply(~ lon + lat, function(x) table(x$mask))
                 })
             }, .parallel = TRUE) -> df
         
-        saveRDS(df, sprintf("%s.rds", experiment))
+        saveRDS(df, sprintf("%s%s.rds", out.prefix, experiment))
     }
 
 #' @export
 process.pr.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
-             experiment = "amip-rain-15", years = 1979:1983,
-             ncores = 12) {
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             subsample = NULL) {
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
             plyr::ddply(~ year + month, function(x) {
@@ -86,6 +93,10 @@ process.pr.echam <-
                                       t = as.vector(t)) %>%
                         cbind(pr = as.vector(pr),
                               prc = as.vector(prc)) %>%
+                        ## if subsampling is requested, do it here
+                        ifelse(is.null(subsample),
+                               df,
+                               dplyr::slice(df, seq(1, nrow(df), subsample))) %>%
                         plyr::ddply(~ lon + lat, function(x) {
                             x %>%
                                 dplyr::mutate(pr.class = cut(3600 * (pr - prc),
@@ -108,14 +119,16 @@ process.pr.echam <-
                     ## })
                 })
             }, .progress = "text", .parallel = TRUE) -> df
-        saveRDS(df, sprintf("pr-hist-%s.rds", experiment))
+        saveRDS(df, sprintf("%spr-hist-%s.rds", out.prefix, experiment))
     }
 
 #' @export
 process.rad.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
-             experiment = "amip-rain-15", years = 1979:1983,
-             ncores = 12) {
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             subsample = NULL) { ## monthly data, so subsampling is ignored
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
             plyr::ddply(~ year + month, function(x) {
@@ -147,8 +160,11 @@ process.rad.echam <-
                               aprl  = as.vector(aprl  ),
                               aprc  = as.vector(aprc  ),
                               aprs  = as.vector(aprs  ))
-
+                    ## ## if subsampling is requested, do it here
+                    ## ifelse(is.null(subsample),
+                    ##        df,
+                    ##        dplyr::slice(df, seq(1, nrow(df), subsample)))
                 })
             }, .progress = "text", .parallel = FALSE) -> df
-        saveRDS(df, sprintf("rad-%s.rds", experiment))
+        saveRDS(df, sprintf("%srad-%s.rds", out.prefix, experiment))
     }
