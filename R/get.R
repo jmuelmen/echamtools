@@ -11,27 +11,27 @@ get.phase.at.locations.echam <- function(locations) {
 
 #' @export
 get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
-    ldply(sprintf("amip-rain-%g", ccrauts),
-          function(experiment) {
-              readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
-                  cbind(experiment = experiment)
-          })
+    ldply(ccrauts, function(ccraut) {
+        experiment <- sprintf("amip-rain-%g", ccraut)
+        readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
+            cbind(ccraut = ccraut)
+    })
 }
 
 #' @export
 get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
-    ldply(sprintf("amip-rain-%g", ccrauts),
-          function(experiment) {
-              readRDS(sprintf("rad-%s.rds", experiment)) %>%
-                  cbind(experiment = experiment)
-          })
+    ldply(ccrauts, function(ccraut) {
+        experiment <- sprintf("amip-rain-%g", ccraut)
+        readRDS(sprintf("rad-%s.rds", experiment)) %>%
+            cbind(ccraut = ccraut)
+    })
 }
 
 #' @export
 get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
-    ldply(sprintf("amip-rain-%g", ccrauts),
-          function(experiment) {
-              readRDS(sprintf("%s.rds", experiment)) %>%
-                  cbind(experiment = experiment)
-          })
+    ldply(ccrauts, function(ccraut) {
+        experiment <- sprintf("amip-rain-%g", ccraut)
+        readRDS(sprintf("%s.rds", experiment)) %>%
+            cbind(ccraut = ccraut)
+    })
 }
