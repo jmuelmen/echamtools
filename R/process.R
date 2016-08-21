@@ -101,12 +101,27 @@ process.pr.echam <-
                          df
                      else dplyr::filter(df, time %in% t[seq(1, length(t), by = subsample)])) %>%
                         plyr::ddply(~ lon + lat, function(x) {
-                            x %>%
-                                dplyr::mutate(pr.class = cut(3600 * (pr - prc),
-                                                             c(0, 0.01, 0.1, 1, 1e8), right = FALSE)) %>%
-                                dplyr::group_by(pr.class) %>%
-                                dplyr::summarize(n = n(),
-                                                 sum.pr = sum(pr - prc))
+                            rbind(x %>%
+                                  dplyr::mutate(pr.class = cut(3600 * pr,
+                                                               c(0, 0.01, 0.1, 1, 1e8), right = FALSE)) %>%
+                                  dplyr::group_by(pr.class) %>%
+                                  dplyr::summarize(n = n(),
+                                                   sum.pr = sum(pr),
+                                                   pr.type = "prl"),
+                                  x %>%
+                                  dplyr::mutate(pr.class = cut(3600 * prc,
+                                                               c(0, 0.01, 0.1, 1, 1e8), right = FALSE)) %>%
+                                  dplyr::group_by(pr.class) %>%
+                                  dplyr::summarize(n = n(),
+                                                   sum.pr = sum(prc),
+                                                   pr.type = "prc"),
+                                  x %>%
+                                  dplyr::mutate(pr.class = cut(3600 * (pr + prc),
+                                                               c(0, 0.01, 0.1, 1, 1e8), right = FALSE)) %>%
+                                  dplyr::group_by(pr.class) %>%
+                                  dplyr::summarize(n = n(),
+                                                   sum.pr = sum(pr + prc),
+                                                   pr.type = "prl + prc"))
                         })
                     ##         filter(as.integer(pr.class) > 1 & !is.na(pr.class)) %>%
                     
