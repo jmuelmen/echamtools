@@ -154,7 +154,12 @@ process.rad.echam <-
                 with(x, {
                     fname <- sprintf("%s/%s/%s_%d%02d.01_echamm.nc",
                                      datadir, experiment, experiment, year, month)
-                    nc <- ncdf4::nc_open(fname)
+                    nc <- try(ncdf4::nc_open(fname))
+                    if (class(nc) == "try-error") { ## try echam instead of echamm
+                        fname <- sprintf("%s/%s/%s_%d%02d.01_echam.nc",
+                                         datadir, experiment, experiment, year, month)
+                        nc <- ncdf4::nc_open(fname)
+                    }
                     t <- ncdf4::ncvar_get(nc, "time")
                     lon <- ncdf4::ncvar_get(nc, "lon")
                     lat <- ncdf4::ncvar_get(nc, "lat")

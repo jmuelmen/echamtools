@@ -10,27 +10,30 @@
 ## }
 
 #' @export
-get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
+get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
+                         amip = TRUE) {
     plyr::ldply(ccrauts, function(ccraut) {
-        experiment <- sprintf("amip-rain-%g", ccraut)
+        experiment <- sprintf("%s%g", ifelse(amip, "amip-rain-", "rain_"), ccraut)
         readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
             cbind(ccraut = ccraut)
     })
 }
 
 #' @export
-get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
+get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
+                          amip = TRUE) {
     plyr::ldply(ccrauts, function(ccraut) {
-        experiment <- sprintf("amip-rain-%g", ccraut)
+        experiment <- sprintf("%s%g", ifelse(amip, "amip-rain-", "rain_"), ccraut)
         readRDS(sprintf("rad-%s.rds", experiment)) %>%
             cbind(ccraut = ccraut)
     })
 }
 
 #' @export
-get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)) {
+get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
+                           amip = TRUE) {
     plyr::ldply(ccrauts, function(ccraut) {
-        experiment <- sprintf("amip-rain-%g", ccraut)
+        experiment <- sprintf("%s%g", ifelse(amip, "amip-rain-", "rain_"), ccraut)
         readRDS(sprintf("%s.rds", experiment)) %>%
             cbind(ccraut = ccraut)
     })
