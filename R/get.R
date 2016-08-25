@@ -12,18 +12,16 @@
 #' @export
 get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                          ccaulocs = NA,
-                         flux = TRUE,
                          amip = TRUE) {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs),
                 ~ ccraut + ccauloc,
                 function(df)
                     with(df, {
-                        experiment <- sprintf("%s%g%s%s",
+                        experiment <- sprintf("%s%g%s",
                                               ifelse(amip, "amip-rain-", "rain_"),
                                               ccraut,
-                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
-                                              ifelse(flux, "", "-mr"))
+                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)))
                         readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc)
@@ -52,16 +50,18 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
 #' @export
 get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                            ccaulocs = NA,
+                           flux = TRUE,
                            amip = TRUE) {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs),
                 ~ ccraut + ccauloc,
                 function(df)
                     with(df, {
-                        experiment <- sprintf("%s%g%s",
+                        experiment <- sprintf("%s%g%s%s",
                                               ifelse(amip, "amip-rain-", "rain_"),
                                               ccraut,
-                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)))
+                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
+                                              ifelse(flux, "", "-mr"))
                         readRDS(sprintf("%s.rds", experiment)) %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc)
