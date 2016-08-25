@@ -25,6 +25,7 @@ process.precip.profile.echam <-
              experiment = "amip-rain-15", out.prefix = "",
              years = 1979:1983,
              ncores = 12,
+             flux = TRUE,
              subsample = NULL) {
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
@@ -42,10 +43,17 @@ process.precip.profile.echam <-
                         lon <- ncdf4::ncvar_get(nc, "lon")
                         lat <- ncdf4::ncvar_get(nc, "lat")
                         df <- plyr::ldply(1:length(t), function(i) {
-                            qr <- ncdf4::ncvar_get(nc, "aprlv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip mixing ratio
-                            qs <- ncdf4::ncvar_get(nc, "aprsv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip mixing ratio
-                            rain.mask <- apply(qr, c(1,2), function(x) any(x > 1e-7)) ## 1e-7 is the cutoff in CESM... ECHAM appears not to have a cutoff
-                            snow.mask <- apply(qs, c(1,2), function(x) any(x > 1e-7))
+                            if (flux) { ## mask based on fluxes
+                                qr <- ncdf4::ncvar_get(nc, "aprlv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip flux
+                                qs <- ncdf4::ncvar_get(nc, "aprsv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip flux
+                                rain.mask <- apply(qr, c(1,2), function(x) any(x > 1e-7)) ## 1e-7 is the cutoff in CESM... ECHAM appears not to have a cutoff
+                                snow.mask <- apply(qs, c(1,2), function(x) any(x > 1e-7))
+                            } else { ## mask based on mixing ratios
+                                qr <- ncdf4::ncvar_get(nc, "xrl_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip mixing ratio
+                                qs <- ncdf4::ncvar_get(nc, "xsl_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip mixing ratio
+                                rain.mask <- apply(qr, c(1,2), function(x) any(x > 1e-12))
+                                snow.mask <- apply(qs, c(1,2), function(x) any(x > 1e-12))
+                            }
                             mask <- factor(ifelse(rain.mask, ifelse(snow.mask, "cold", "warm"),
                                            ifelse(snow.mask, "snow", "dry")),
                                            levels = c("dry", "warm", "cold", "snow"))
@@ -67,7 +75,7 @@ process.precip.profile.echam <-
                 })
             }, .parallel = TRUE) -> df
         
-        saveRDS(df, sprintf("%s%s.rds", out.prefix, experiment))
+        saveRDS(df, sprintf("%s%s%s.rds", out.prefix, experiment, ifelse(flux, "", "-mr")))
     }
 
 #' @export
@@ -76,6 +84,7 @@ process.pr.echam <-
              experiment = "amip-rain-15", out.prefix = "",
              years = 1979:1983,
              ncores = 12,
+             flux = TRUE,
              subsample = NULL) {
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
@@ -146,6 +155,7 @@ process.rad.echam <-
              experiment = "amip-rain-15", out.prefix = "",
              years = 1979:1983,
              ncores = 12,
+             flux = TRUE,
              subsample = NULL) { ## monthly data, so subsampling is ignored
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
