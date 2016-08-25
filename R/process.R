@@ -35,7 +35,7 @@ process.precip.profile.echam <-
                 with(x, {
                     fname <- sprintf("%s/%s/%s_%d%02d.01_rain3d.nc",
                                      datadir, experiment, experiment, year, month)
-                    out.name <- gsub(".nc", ".rds", fname)
+                    out.name <- gsub(ifelse(flux, ".nc", "_mr.nc", ".rds", fname))
                     df <- try(readRDS(out.name), silent = TRUE)
                     if (class(df) == "try-error") {
                         nc <- ncdf4::nc_open(fname)
