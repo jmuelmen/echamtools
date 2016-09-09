@@ -31,16 +31,18 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
 #' @export
 get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                           ccaulocs = NA,
-                          amip = TRUE) {
+                          amip = TRUE,
+                          pi = FALSE) {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs),
                 ~ ccraut + ccauloc,
                 function(df) 
                     with(df, {
-                        experiment <- sprintf("%s%g%s",
+                        experiment <- sprintf("%s%g%s%s",
                                               ifelse(amip, "amip-rain-", "rain_"),
                                               ccraut,
-                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)))
+                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
+                                              ifelse(pi, "_pi", ""))
                         readRDS(sprintf("rad-%s.rds", experiment)) %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc)
