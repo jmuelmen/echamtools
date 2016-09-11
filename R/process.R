@@ -38,7 +38,9 @@ process.precip.profile.echam <-
                     out.name <- gsub(".nc", ifelse(flux, ".rds", "-mr.rds"), fname)
                     df <- try(readRDS(out.name), silent = TRUE)
                     if (class(df) == "try-error") {
-                        nc <- ncdf4::nc_open(fname)
+                        nc <- try(ncdf4::nc_open(fname), silent = TRUE)
+                        if (class(df) == "try-error")
+                            return(NULL)
                         t <- ncdf4::ncvar_get(nc, "time")
                         lon <- ncdf4::ncvar_get(nc, "lon")
                         lat <- ncdf4::ncvar_get(nc, "lat")
@@ -93,7 +95,9 @@ process.pr.echam <-
                 with(x, {
                     fname <- sprintf("%s/%s/%s_%d%02d.01_rain2d.nc",
                                      datadir, experiment, experiment, year, month)
-                    nc <- ncdf4::nc_open(fname)
+                    nc <- try(ncdf4::nc_open(fname), silent = TRUE)
+                    if (class(df) == "try-error")
+                        return(NULL)
                     t <- ncdf4::ncvar_get(nc, "time")
                     lon <- ncdf4::ncvar_get(nc, "lon")
                     lat <- ncdf4::ncvar_get(nc, "lat")
@@ -164,11 +168,13 @@ process.rad.echam <-
                 with(x, {
                     fname <- sprintf("%s/%s/%s_%d%02d.01_echamm.nc",
                                      datadir, experiment, experiment, year, month)
-                    nc <- try(ncdf4::nc_open(fname))
+                    nc <- try(ncdf4::nc_open(fname), silent = TRUE)
                     if (class(nc) == "try-error") { ## try echam instead of echamm
                         fname <- sprintf("%s/%s/%s_%d%02d.01_echam.nc",
                                          datadir, experiment, experiment, year, month)
-                        nc <- ncdf4::nc_open(fname)
+                        nc <- try(ncdf4::nc_open(fname), silent = TRUE)
+                        if (class(df) == "try-error")
+                            return(NULL)
                     }
                     t <- ncdf4::ncvar_get(nc, "time")
                     lon <- ncdf4::ncvar_get(nc, "lon")
