@@ -39,7 +39,7 @@ process.precip.profile.echam <-
                     df <- try(readRDS(out.name), silent = TRUE)
                     if (class(df) == "try-error") {
                         nc <- try(ncdf4::nc_open(fname), silent = TRUE)
-                        if (class(df) == "try-error")
+                        if (class(nc) == "try-error")
                             return(NULL)
                         t <- ncdf4::ncvar_get(nc, "time")
                         lon <- ncdf4::ncvar_get(nc, "lon")
@@ -96,7 +96,7 @@ process.pr.echam <-
                     fname <- sprintf("%s/%s/%s_%d%02d.01_rain2d.nc",
                                      datadir, experiment, experiment, year, month)
                     nc <- try(ncdf4::nc_open(fname), silent = TRUE)
-                    if (class(df) == "try-error")
+                    if (class(nc) == "try-error")
                         return(NULL)
                     t <- ncdf4::ncvar_get(nc, "time")
                     lon <- ncdf4::ncvar_get(nc, "lon")
@@ -173,7 +173,7 @@ process.rad.echam <-
                         fname <- sprintf("%s/%s/%s_%d%02d.01_echam.nc",
                                          datadir, experiment, experiment, year, month)
                         nc <- try(ncdf4::nc_open(fname), silent = TRUE)
-                        if (class(df) == "try-error")
+                        if (class(nc) == "try-error")
                             return(NULL)
                     }
                     t <- ncdf4::ncvar_get(nc, "time")
