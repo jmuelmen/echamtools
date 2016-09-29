@@ -43,7 +43,7 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                 ~ ccraut + ccauloc,
                 function(df) 
                     with(df, {
-                        experiment <- sprintf("%s%g%s%s",
+                        experiment <- sprintf("%s%g%s%s%s",
                                               ifelse(amip, "amip-rain-", "rain_"),
                                               ccraut,
                                               ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
