@@ -187,6 +187,10 @@ process.rad.echam <-
                     aprl  <- ncdf4::ncvar_get(nc, "aprl") ## precip
                     aprc  <- ncdf4::ncvar_get(nc, "aprc")
                     aprs  <- ncdf4::ncvar_get(nc, "aprs")
+                    aclcov <- ncdf4::ncvar_get(nc, "aclcov") ## cloud cover
+                    xivi   <- ncdf4::ncvar_get(nc, "xivi") ## IWP
+                    xlvi   <- ncdf4::ncvar_get(nc, "xlvi") ## LWP
+                    qvi    <- ncdf4::ncvar_get(nc, "qvi") ## water vapor path
                     ncdf4::nc_close(nc)
                     df <- expand.grid(lon = as.vector(lon),
                                       lat = as.vector(lat),
@@ -198,7 +202,11 @@ process.rad.echam <-
                               traf0  = as.vector(traf0  ),
                               aprl  = as.vector(aprl  ),
                               aprc  = as.vector(aprc  ),
-                              aprs  = as.vector(aprs  ))
+                              aprs  = as.vector(aprs  ),
+                              aclcov = as.vector(aclcov),
+                              xivi   = as.vector(xivi  ),
+                              xlvi   = as.vector(xlvi  ),
+                              qvi    = as.vector(qvi   ))
                     ## ## if subsampling is requested, do it here
                     ## ifelse(is.null(subsample),
                     ##        df,
