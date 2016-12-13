@@ -29,7 +29,8 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                                               ifelse(pi, "_pi", ""))
                         readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
                             cbind(ccraut = ccraut,
-                                  ccauloc = ccauloc)
+                                  ccauloc = ccauloc,
+                                  creth = creth)
                     }))
 }
 
@@ -53,7 +54,8 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                                               ifelse(pi, "_pi", ""))
                         readRDS(sprintf("rad-%s.rds", experiment)) %>%
                             cbind(ccraut = ccraut,
-                                  ccauloc = ccauloc)
+                                  ccauloc = ccauloc,
+                                  creth = creth)
                     }))
 }
 
