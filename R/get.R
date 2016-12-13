@@ -16,8 +16,9 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                          amip = TRUE,
                          pi = TRUE) {
     plyr::ddply(expand.grid(ccraut = ccrauts,
-                            ccauloc = ccaulocs),
-                ~ ccraut + ccauloc,
+                            ccauloc = ccaulocs,
+                            creth = creth),
+                ~ ccraut + ccauloc + creth,
                 function(df)
                     with(df, {
                         experiment <- sprintf("%s%g%s",
@@ -39,8 +40,9 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                           amip = TRUE,
                           pi = FALSE) {
     plyr::ddply(expand.grid(ccraut = ccrauts,
-                            ccauloc = ccaulocs),
-                ~ ccraut + ccauloc,
+                            ccauloc = ccaulocs,
+                            creth = creth),
+                ~ ccraut + ccauloc + creth,
                 function(df) 
                     with(df, {
                         experiment <- sprintf("%s%g%s%s%s",
