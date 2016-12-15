@@ -28,6 +28,7 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                                               ifelse(is.na(creth), "", sprintf("_%g", creth)),
                                               ifelse(pi, "_pi", ""))
                         readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
+                            filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth)
@@ -53,6 +54,7 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                                               ifelse(is.na(creth), "", sprintf("_%g", creth)),
                                               ifelse(pi, "_pi", ""))
                         readRDS(sprintf("rad-%s.rds", experiment)) %>%
+                            filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth)
@@ -80,8 +82,19 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                                               ifelse(pi, "_pi", ""),
                                               ifelse(flux, "", "-mr"))
                         readRDS(sprintf("%s.rds", experiment)) %>%
+                            filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth)
                 }))
+}
+
+filter_whole_years <- function(df) {
+    plyr::ddply(df, ~ year, function(df) {
+        tbl <- table(df$month)
+        if (length(tbl) == 12 && all(tbl == tbl[1]))
+            df
+        else
+            NULL
+    })
 }
