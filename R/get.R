@@ -21,13 +21,13 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                 ~ ccraut + ccauloc + creth,
                 function(df)
                     with(df, {
-                        experiment <- sprintf("%s%g%s",
+                        experiment <- sprintf("%s%g%s%s%s",
                                               ifelse(amip, "amip-rain-", "rain_"),
                                               ccraut,
                                               ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
                                               ifelse(is.na(creth), "", sprintf("_%g", creth)),
                                               ifelse(pi, "_pi", ""))
-                        readRDS(sprintf("pr-hist-%s.rds", experiment)) %>%
+                        readRDS(sprintf("/home/jmuelmen/wcrain/echam-ham/pr-hist-%s.rds", experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
@@ -53,7 +53,7 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                                               ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
                                               ifelse(is.na(creth), "", sprintf("_%g", creth)),
                                               ifelse(pi, "_pi", ""))
-                        readRDS(sprintf("rad-%s.rds", experiment)) %>%
+                        readRDS(sprintf("/home/jmuelmen/wcrain/echam-ham/rad-%s.rds", experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
@@ -81,7 +81,7 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                                               ifelse(is.na(creth), "", sprintf("_%g", creth)),
                                               ifelse(pi, "_pi", ""),
                                               ifelse(flux, "", "-mr"))
-                        readRDS(sprintf("%s.rds", experiment)) %>%
+                        readRDS(sprintf("/home/jmuelmen/wcrain/echam-ham/%s.rds", experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
