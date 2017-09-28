@@ -1,0 +1,94 @@
+library(ncdf4)
+library(plyr)
+library(dplyr)
+library(plotutils)
+library(ggplot2)
+library(magrittr)
+
+path <- "/work/bb0839/b380126/rain_4/"
+fname.lsrain <- "rain_4_200405.01_cosp_lsrain.nc"
+fname.lssnow <- "rain_4_200405.01_cosp_lssnow.nc"
+fname.tau    <- "rain_4_200405.01_cosp_cisccp_tau3d.nc"
+fname.dbze   <- "rain_4_200405.01_cosp_037.nc"      
+fname.reffl   <- "rain_4_200405.01_cosp_reffl.nc"      
+fname.reffi   <- "rain_4_200405.01_cosp_reffi.nc"      
+
+nc.lssnow <- ncdf4::nc_open(paste(path, fname.lssnow, sep = ""))
+nc.lsrain <- ncdf4::nc_open(paste(path, fname.lsrain, sep = ""))
+nc.tau <-    ncdf4::nc_open(paste(path, fname.tau   , sep = ""))
+nc.dbze <-   ncdf4::nc_open(paste(path, fname.dbze  , sep = ""))
+nc.reffl <-  ncdf4::nc_open(paste(path, fname.reffl , sep = ""))
+nc.reffi <-  ncdf4::nc_open(paste(path, fname.reffi , sep = ""))
+
+lon  <- ncdf4::ncvar_get(nc.lssnow, "lon")
+lat  <- ncdf4::ncvar_get(nc.lssnow, "lat")
+lev  <- ncdf4::ncvar_get(nc.lssnow, "mlev")
+time  <- ncdf4::ncvar_get(nc.lssnow, "time")
+
+lssnow  <- ncdf4::ncvar_get(nc.lssnow, "lssnow")
+lsrain  <- ncdf4::ncvar_get(nc.lsrain, "lsrain")
+tau     <- ncdf4::ncvar_get(nc.tau   , "cisccp_tau3d"   )
+dbze    <- ncdf4::ncvar_get(nc.dbze  , "dbze94_037"  )
+fracout <- ncdf4::ncvar_get(nc.dbze  , "frac_out_037"  )
+reffl   <- ncdf4::ncvar_get(nc.reffl , "reffl"  )
+reffi   <- ncdf4::ncvar_get(nc.reffi , "reffi"  )
+
+mask <- (apply(reffi, c(1,2,4), function(x) rep(all(x == 0 | x == 4), 31)) &
+    apply(fracout, c(1,2,4), function(x) rep(any(x == 1), 31)))  %>%
+    aperm(c(2,3,1,4))
+
+label.vertical.features <- function(vfm) {
+    x <- vfm
+    if (length(x) == 0)
+        return(x)
+    diff.x <- diff(c(-1, x)) ## guarantee that the first group of 1's is preceded by a transition
+    labels <- cumsum(diff.x != 0 & x != 0) * (x != 0) ## count up the edges
+    labels
+}
+
+expand.grid(lon = as.vector(lon),
+            lat = as.vector(lat),
+            lev = as.vector(lev),
+            time = as.vector(time))  %>%
+    filter(as.vector(mask)) %>%
+    mutate(lssnow  = as.vector(lssnow  [mask]),
+           lsrain  = as.vector(lsrain  [mask]),
+           tau     = as.vector(tau     [mask]),
+           dbze    = as.vector(dbze    [mask]),
+           fracout = as.vector(fracout [mask]),
+           reffl   = as.vector(reffl   [mask]),
+           reffi   = as.vector(reffi   [mask])) -> df
+
+df %<>%
+    group_by(lon, lat, time) %>%
+    mutate(layer = label.vertical.features(fracout)) %>%
+    filter(layer == max(layer)) %>%
+    mutate(tautot = cumsum(tau)) %>%
+    mutate(refftop = reffl[1]) %>%
+    ungroup() %>%
+    filter(dbze > -100) %>%
+    mutate(dbze = round(dbze),
+           tautot = round(tautot)) 
+
+saveRDS(df, "200405.rds")
+
+df <- readRDS("200405.rds")
+
+df %>%
+    filter(dbze > -30, tautot < 60) %>%
+    discretize(refftop, seq(5, 20, 5), as_factor = TRUE) %>%
+    filter(!is.na(refftop)) %>%
+    plotutils::discretize(dbze, seq(-30, 20, by = 2)) %>%
+    plotutils::discretize(tautot, seq(0, 60, by = 2)) %>%
+    group_by(dbze, tautot, refftop) %>%
+    summarize(count = n()) %>%
+    group_by(tautot, refftop) %>%
+    mutate(rel.count = count / sum(as.numeric(count))) %>%
+    ungroup() %>%
+    ggplot(aes(x = dbze, y = tautot)) +
+    geom_raster(aes(fill = (rel.count))) +
+    facet_wrap(~ refftop, nrow = 1) +
+    scale_y_reverse() +
+    scale_fill_distiller(palette = "Blues") +
+    theme_bw(24)
+    
