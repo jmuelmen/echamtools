@@ -82,7 +82,15 @@ cfodd.process <- function(ccraut, ccauloc, creth, pi = FALSE) {
     saveRDS(df, sprintf("%s.rds", experiment))
 }
 
-df <- readRDS("200405.rds")
+df <- bind_rows(readRDS("200405.rds") %>%
+                mutate(ccraut = 4, creth = -1, ccauloc = 1),
+                ## readRDS("rain_0.0001.rds") %>%
+                ## mutate(ccraut = 1e-4, creth = -1, ccauloc = 1),
+                readRDS("rain_4_1_15.rds") %>%
+                mutate(ccraut = 4, creth = 15, ccauloc = 1),
+                readRDS("rain_4_1_17.rds") %>%
+                mutate(ccraut = 4, creth = 17, ccauloc = 1))
+
 
 df %>%
     filter(dbze > -30, tautot < 60) %>%
@@ -90,15 +98,17 @@ df %>%
     filter(!is.na(refftop)) %>%
     plotutils::discretize(dbze, seq(-30, 20, by = 2)) %>%
     plotutils::discretize(tautot, seq(0, 60, by = 2)) %>%
-    group_by(dbze, tautot, refftop) %>%
+    group_by(dbze, tautot, refftop, ccraut, creth, ccauloc) %>%
     summarize(count = n()) %>%
-    group_by(tautot, refftop) %>%
+    group_by(tautot, refftop, ccraut, creth, ccauloc) %>%
     mutate(rel.count = count / sum(as.numeric(count))) %>%
     ungroup() %>%
     ggplot(aes(x = dbze, y = tautot)) +
     geom_raster(aes(fill = (rel.count))) +
-    facet_wrap(~ refftop, nrow = 1) +
+    facet_grid(creth ~ refftop) +
     scale_y_reverse() +
-    scale_fill_distiller(palette = "Blues") +
+    scale_fill_distiller(palette = "Blues", direction = -1) +
+    labs(x = "Reflectivity (dB$Z_e$)", y = "Optical depth") +
+    guides(fill = "none") +
     theme_bw(24)
     
