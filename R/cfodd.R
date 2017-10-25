@@ -1,10 +1,5 @@
-library(ncdf4)
-library(plyr)
-library(dplyr)
-library(plotutils)
-library(ggplot2)
-library(magrittr)
 
+#' @export 
 cfodd.process <- function(ccraut, ccauloc, creth, pi = FALSE) {
     experiment <- sprintf("%s%g%s%s%s",
                           "rain_",
@@ -82,27 +77,30 @@ cfodd.process <- function(ccraut, ccauloc, creth, pi = FALSE) {
     saveRDS(df, sprintf("%s.rds", experiment))
 }
 
-df <- bind_rows(readRDS("200405.rds") %>%
-                mutate(ccraut = 4, creth = -1, ccauloc = 1),
-                ## readRDS("rain_0.0001.rds") %>%
-                ## mutate(ccraut = 1e-4, creth = -1, ccauloc = 1),
-                readRDS("rain_4_1_15.rds") %>%
-                mutate(ccraut = 4, creth = 15, ccauloc = 1),
-                readRDS("rain_4_1_17.rds") %>%
-                mutate(ccraut = 4, creth = 17, ccauloc = 1))
+#' @export 
+cfodd.plot <- function(df) {
+    df %>%
+        dplyr::filter(dbze > -30, tautot < 60) %>%
+        plotutils::discretize(refftop, seq(5, 20, 5), as_factor = TRUE) %>%
+        dplyr::filter(!is.na(refftop)) %>%
+        plotutils::discretize(dbze, seq(-30, 20, by = 2)) %>%
+        plotutils::discretize(tautot, seq(0, 60, by = 2)) %>%
+        dplyr::group_by(dbze, tautot, refftop, ccraut, creth, ccauloc) %>%
+        dplyr::summarize(count = n()) %>%
+        dplyr::group_by(tautot, refftop, ccraut, creth, ccauloc) %>%
+        dplyr::mutate(rel.count = count / sum(as.numeric(count))) %>%
+        dplyr::ungroup()
+}
 
-
-df %>%
-    filter(dbze > -30, tautot < 60) %>%
-    discretize(refftop, seq(5, 20, 5), as_factor = TRUE) %>%
-    filter(!is.na(refftop)) %>%
-    plotutils::discretize(dbze, seq(-30, 20, by = 2)) %>%
-    plotutils::discretize(tautot, seq(0, 60, by = 2)) %>%
-    group_by(dbze, tautot, refftop, ccraut, creth, ccauloc) %>%
-    summarize(count = n()) %>%
-    group_by(tautot, refftop, ccraut, creth, ccauloc) %>%
-    mutate(rel.count = count / sum(as.numeric(count))) %>%
-    ungroup() %>%
+bind_rows(readRDS("200405.rds") %>%
+          mutate(ccraut = 4, creth = -1, ccauloc = 1),
+          ## readRDS("rain_0.0001.rds") %>%
+          ## mutate(ccraut = 1e-4, creth = -1, ccauloc = 1),
+          readRDS("rain_4_1_15.rds") %>%
+          mutate(ccraut = 4, creth = 15, ccauloc = 1),
+          readRDS("rain_4_1_17.rds") %>%
+          mutate(ccraut = 4, creth = 17, ccauloc = 1)) %>%
+    cfodd.plot() %>%
     ggplot(aes(x = dbze, y = tautot)) +
     geom_raster(aes(fill = (rel.count))) +
     facet_grid(creth ~ refftop) +
