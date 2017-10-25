@@ -32,7 +32,8 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
-                                  creth = creth)
+                                  creth = creth,
+                                  pi_pd = ifelse(pi, "PI", "PD"))
                     }))
 }
 
@@ -59,7 +60,8 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
-                                  creth = creth)
+                                  creth = creth,
+                                  pi_pd = ifelse(pi, "PI", "PD"))
                     }))
 }
 
@@ -88,7 +90,8 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
-                                  creth = creth)
+                                  creth = creth,
+                                  pi_pd = ifelse(pi, "PI", "PD"))
                 }))
 }
 
