@@ -1,6 +1,10 @@
 
 #' @export 
-cfodd.process <- function(ccraut, ccauloc, creth, pi = FALSE) {
+cfodd.process <- function(ccraut,
+                          ccauloc,
+                          creth,
+                          pi = FALSE,
+                          path = "/work/bb0839/b380126") {
     experiment <- sprintf("%s%g%s%s%s",
                           "rain_",
                           ccraut,
@@ -9,7 +13,7 @@ cfodd.process <- function(ccraut, ccauloc, creth, pi = FALSE) {
                           ifelse(pi, "_pi", ""))
     print(sprintf("Experiment: %s", experiment))
 
-    path <- sprintf("/work/bb0839/b380126/%s/", experiment)
+    path <- sprintf("%s/%s/", path, experiment)
     fname.lsrain <- sprintf("%s_%s", experiment, "200405.01_cosp_lsrain.nc"      )
     fname.lssnow <- sprintf("%s_%s", experiment, "200405.01_cosp_lssnow.nc"      )
     fname.tau    <- sprintf("%s_%s", experiment, "200405.01_cosp_cisccp_tau3d.nc")
