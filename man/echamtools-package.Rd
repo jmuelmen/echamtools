@@ -8,4 +8,7 @@
 \description{
 Generate summary warm/cold rain mask files from 3D ECHAM output
 }
+\author{
+\strong{Maintainer}: Johannes Muelmenstaedt \email{johannes.muelmenstaedt@uni-leipzig.de}
 
+}

@@ -7,7 +7,7 @@
 
   process.precip.profile.echam(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
   experiment = "amip-rain-15", out.prefix = "", years = 1979:1983,
-  ncores = 12, subsample = NULL)
+  ncores = 12, flux = TRUE, subsample = NULL)
 }
 \arguments{
 \item{datadir}{Path to data; this directory should containt \code{experiment} as a subdirectory.}
@@ -37,4 +37,3 @@ occurrences of dry/warm/cold/snow in each grid box is produced.
 This file is named \code{experiment}.rds and is written in the
 working directory.
 }
-
