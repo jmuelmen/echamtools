@@ -54,25 +54,25 @@ cfodd.process <- function(ccraut, ccauloc, creth, pi = FALSE) {
                 lat = as.vector(lat),
                 lev = as.vector(lev),
                 time = as.vector(time))  %>%
-        filter(as.vector(mask)) %>%
-        mutate(lssnow  = as.vector(lssnow  [mask]),
-               lsrain  = as.vector(lsrain  [mask]),
-               tau     = as.vector(tau     [mask]),
-               dbze    = as.vector(dbze    [mask]),
-               fracout = as.vector(fracout [mask]),
-               reffl   = as.vector(reffl   [mask]),
-               reffi   = as.vector(reffi   [mask])) -> df
+        dplyr::filter(as.vector(mask)) %>%
+        dplyr::mutate(lssnow  = as.vector(lssnow  [mask]),
+                      lsrain  = as.vector(lsrain  [mask]),
+                      tau     = as.vector(tau     [mask]),
+                      dbze    = as.vector(dbze    [mask]),
+                      fracout = as.vector(fracout [mask]),
+                      reffl   = as.vector(reffl   [mask]),
+                      reffi   = as.vector(reffi   [mask])) -> df
 
     df %<>%
-        group_by(lon, lat, time) %>%
-        mutate(layer = label.vertical.features(fracout)) %>%
-        filter(layer == max(layer)) %>%
-        mutate(tautot = cumsum(tau)) %>%
-        mutate(refftop = reffl[1]) %>%  ## check this
-        ungroup() %>%
-        filter(dbze > -100) %>%
-        mutate(dbze = round(dbze),
-               tautot = round(tautot)) 
+        dplyr::group_by(lon, lat, time) %>%
+        dplyr::mutate(layer = label.vertical.features(fracout)) %>%
+        dplyr::filter(layer == max(layer)) %>%
+        dplyr::mutate(tautot = cumsum(tau)) %>%
+        dplyr::mutate(refftop = reffl[1]) %>%  ## check this
+        dplyr::ungroup() %>%
+        dplyr::filter(dbze > -100) %>%
+        dplyr::mutate(dbze = round(dbze),
+                      tautot = round(tautot)) 
 
     saveRDS(df, sprintf("%s.rds", experiment))
 }
