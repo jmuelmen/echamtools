@@ -22,12 +22,7 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                 ~ ccraut + ccauloc + creth,
                 function(df)
                     with(df, {
-                        experiment <- sprintf("%s%g%s%s%s",
-                                              ifelse(amip, "amip-rain-", "rain_"),
-                                              ccraut,
-                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
-                                              ifelse(is.na(creth), "", sprintf("_%g", creth)),
-                                              ifelse(pi, "_pi", ""))
+                        experiment <- expname(ccraut, ccauloc, creth, amip, pi)
                         readRDS(sprintf("%s/pr-hist-%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
                             mutate(pi_pd = ifelse(pi, "PI", "PD"))
@@ -47,12 +42,7 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                 ~ ccraut + ccauloc + creth,
                 function(df) 
                     with(df, {
-                        experiment <- sprintf("%s%g%s%s%s",
-                                              ifelse(amip, "amip-rain-", "rain_"),
-                                              ccraut,
-                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
-                                              ifelse(is.na(creth), "", sprintf("_%g", creth)),
-                                              ifelse(pi, "_pi", ""))
+                        experiment <- expname(ccraut, ccauloc, creth, amip, pi)
                         readRDS(sprintf("%s/rad-%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
@@ -76,13 +66,7 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                 ~ ccraut + ccauloc + creth,
                 function(df)
                     with(df, {
-                        experiment <- sprintf("%s%g%s%s",
-                                              ifelse(amip, "amip-rain-", "rain_"),
-                                              ccraut,
-                                              ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
-                                              ifelse(is.na(creth), "", sprintf("_%g", creth)),
-                                              ifelse(pi, "_pi", ""),
-                                              ifelse(flux, "", "-mr"))
+                        experiment <- expname(ccraut, ccauloc, creth, amip, pi)
                         readRDS(sprintf("%s/%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
@@ -100,4 +84,13 @@ filter_whole_years <- function(df) {
         else
             NULL
     })
+}
+
+expname <- function(ccraut, ccauloc, creth, amip, pi) {
+    experiment <- sprintf("%s%g%s%s%s",
+                          ifelse(amip, "amip-rain-", "rain_"),
+                          ccraut,
+                          ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
+                          ifelse(is.na(creth), "", sprintf("_%g", creth)),
+                          ifelse(pi, "_pi", ""))
 }
