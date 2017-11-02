@@ -13,16 +13,21 @@
 get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                          ccaulocs = NA,
                          creth = NA,
+                         cautalpha = NA,
+                         cautbeta = NA,
                          amip = FALSE,
                          pi = FALSE,
                          path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
-                            creth = creth),
-                ~ ccraut + ccauloc + creth,
+                            creth = creth,
+                            cautalpha = cautalpha,
+                            cautbeta = cautbeta),
+                ~ ccraut + ccauloc + creth + cautalpha + cautbeta,
                 function(df)
                     with(df, {
-                        experiment <- expname(ccraut, ccauloc, creth, amip, pi)
+                        experiment <- expname(ccraut, ccauloc, creth,
+                                              cautalpha, cautbeta, amip, pi)
                         readRDS(sprintf("%s/pr-hist-%s.rds", path, experiment)) %>%
                             filter_whole_years(exact = FALSE) %>%
                             mutate(pi_pd = ifelse(pi, "PI", "PD"))
@@ -33,21 +38,28 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
 get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                           ccaulocs = NA,
                           creth = NA,
+                          cautalpha = NA,
+                          cautbeta = NA,
                           amip = FALSE,
                           pi = FALSE,
                           path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
-                            creth = creth),
-                ~ ccraut + ccauloc + creth,
-                function(df) 
+                            creth = creth,
+                            cautalpha = cautalpha,
+                            cautbeta = cautbeta),
+                ~ ccraut + ccauloc + creth + cautalpha + cautbeta,
+                function(df)
                     with(df, {
-                        experiment <- expname(ccraut, ccauloc, creth, amip, pi)
+                        experiment <- expname(ccraut, ccauloc, creth,
+                                              cautalpha, cautbeta, amip, pi)
                         readRDS(sprintf("%s/rad-%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth,
+                                  cautalpha = cautalpha,
+                                  cautbeta = cautbeta,
                                   pi_pd = ifelse(pi, "PI", "PD"))
                     }))
 }
@@ -55,23 +67,31 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
 #' @export
 get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                            ccaulocs = NA,
-                           flux = TRUE,
                            creth = NA,
+                           cautalpha = NA,
+                           cautbeta = NA,
                            amip = FALSE,
                            pi = FALSE,
+                           flux = TRUE,
                            path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
-                            creth = creth),
-                ~ ccraut + ccauloc + creth,
+                            creth = creth,
+                            cautalpha = cautalpha,
+                            cautbeta = cautbeta),
+                ~ ccraut + ccauloc + creth + cautalpha + cautbeta,
                 function(df)
                     with(df, {
-                        experiment <- expname(ccraut, ccauloc, creth, amip, pi)
+                        experiment <- expname(ccraut, ccauloc, creth,
+                                              cautalpha, cautbeta, amip, pi)
+                        ## print(experiment)
                         readRDS(sprintf("%s/%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
                             cbind(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth,
+                                  cautalpha = cautalpha,
+                                  cautbeta = cautbeta,
                                   pi_pd = ifelse(pi, "PI", "PD"))
                 }))
 }
@@ -105,11 +125,14 @@ filter_whole_years <- function(df, exact = TRUE) {
     })
 }
 
-expname <- function(ccraut, ccauloc, creth, amip, pi) {
-    experiment <- sprintf("%s%g%s%s%s",
+expname <- function(ccraut, ccauloc, creth,
+                    cautalpha, cautbeta, amip, pi) {
+    experiment <- sprintf("%s%g%s%s%s%s%s",
                           ifelse(amip, "amip-rain-", "rain_"),
                           ccraut,
                           ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
                           ifelse(is.na(creth), "", sprintf("_%g", creth)),
+                          ifelse(is.na(cautalpha), "", sprintf("_cautalpha_%g", cautalpha)),
+                          ifelse(is.na(cautbeta), "", sprintf("_cautbeta_%g", cautbeta)),
                           ifelse(pi, "_pi", ""))
 }
