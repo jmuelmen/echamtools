@@ -24,7 +24,7 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth, amip, pi)
                         readRDS(sprintf("%s/pr-hist-%s.rds", path, experiment)) %>%
-                            filter_whole_years() %>%
+                            filter_whole_years(exact = FALSE) %>%
                             mutate(pi_pd = ifelse(pi, "PI", "PD"))
                     }))
 }
@@ -76,13 +76,32 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                 }))
 }
 
-filter_whole_years <- function(df) {
+filter_whole_years <- function(df, exact = TRUE) {
     plyr::ddply(df, ~ year, function(df) {
         tbl <- table(df$month)
-        if (length(tbl) == 12 && all(tbl == tbl[1]))
-            df
-        else
-            NULL
+        if (exact) {
+            if (length(tbl) == 12 && all(tbl == tbl[1])) 
+                df
+            else
+                NULL
+        } else {
+            if (length(tbl) != 12) {
+                warning(sprintf("filter_whole_years: only %d month(s) in year %d",
+                              length(tbl), df$year[1]))
+                NULL
+            } else if (any(abs(tbl - mean(tbl)) / mean(tbl) > 0.1)) {
+                warning(sprintf("filter_whole_years: max deviation %.2f%% in %2d/%d",
+                              100 * max(abs(tbl - mean(tbl)) / mean(tbl)),
+                              which.max(abs(tbl - mean(tbl)) / mean(tbl)), df$year[1]))
+                NULL
+            }
+            else {
+                ## warning(sprintf("Max deviation %.2f%% in %2d/%d",
+                ##               100 * max(abs(tbl - mean(tbl)) / mean(tbl)),
+                ##               which.max(abs(tbl - mean(tbl)) / mean(tbl)), df$year[1]))
+                df
+            }
+        }
     })
 }
 
