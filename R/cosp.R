@@ -63,7 +63,15 @@ cosp.process <- function(ccraut,
     }, .progress = "text")
     cldfrac <- 1e-2 * cldfrac
 
-    hist(cldfrac[cldfrac > 0])
+    expand.grid(lon = as.vector(lon),
+                lat = as.vector(lat),
+                lev = as.vector(lev),
+                time = as.vector(time)) %>%
+        dplyr::mutate(cosp.cldfrac = as.vector(cldfrac),
+                      aclc = as.vector(aclc)) %>%
+        saveRDS(sprintf("cosp-cldfrac-%s.rds", experiment))
+
+    ## hist(cldfrac[cldfrac > 0])
     
     df <- plyr::adply(1:100, 1, .id = "subcol", function(subcol) {
         gc()
@@ -89,6 +97,14 @@ cosp.process <- function(ccraut,
                           aprl    = as.vector(aprl),
                           fracout = as.vector(fracout))
         
+        if (subcol == 1) {
+            df %>%
+                dplyr::filter(fracout == 1)  %>%
+                ## snow or rain, not both
+                dplyr::filter(lssnow < 1e-8 | lsrain < 1e-8) %>%
+                dplyr::filter(dbze > -30) %>%
+                saveRDS(sprintf("cosp-teaser-%s.rds", experiment))
+        }
 
         df %<>% dplyr::mutate(dbze = replace(dbze, dbze < -1e29, NA))
         df %<>% tidyr::gather(type, q_precip, lssnow.ic : lsrain) %>%
