@@ -102,59 +102,12 @@ cosp.process <- function(ccraut,
                 dplyr::filter(fracout == 1)  %>%
                 ## snow or rain, not both
                 dplyr::filter(lssnow < 1e-8 | lsrain < 1e-8) %>%
-                dplyr::filter(dbze > -30) %>%
+                dplyr::filter(dbze > -50) %>%
                 saveRDS(sprintf("cosp-teaser-%s.rds", experiment))
         }
 
         df <- readRDS(sprintf("~/cosp-teaser-%s.rds", experiment))
-
-        df %>%
-            dplyr::filter(aprlv > 1e-7, lsrain > 1e-7,
-                          aprlv < 1e-2, lsrain < 1e-2) %>%
-            ggplot(aes(x = aprlv, y = lsrain)) +
-            geom_bin2d() +
-            geom_smooth(col = "red") +
-            scale_x_log10() +
-            scale_y_log10() +
-            scale_fill_distiller(palette = "GnBu") +
-            geom_abline(slope = 1, intercept = 0, lty = "dashed", col = "grey") +
-            theme_bw()
-    
-        df %>%
-            dplyr::filter(xrl > 1e-9, lsrain > 1e-7,
-                          xrl < 1e-3, lsrain < 1e-2) %>%
-            ggplot(aes(x = xrl, y = lsrain)) +
-            geom_bin2d() +
-            geom_smooth(col = "red") +
-            scale_x_log10() +
-            scale_y_log10() +
-            scale_fill_distiller(palette = "GnBu") +
-            geom_abline(slope = 1, intercept = 0, lty = "dashed", col = "grey") +
-            theme_bw()
-
-        df %>%
-            dplyr::filter(aprlv > 1e-7, lsrain > 1e-7,
-                          aprlv < 1e-2, lsrain < 1e-2) %>%
-            ggplot(aes(x = aprlv, y = dbze)) +
-            geom_bin2d() +
-            geom_smooth(col = "red") +
-            scale_x_log10() +
-            ## scale_y_log10() +
-            scale_fill_distiller(palette = "GnBu") +
-            geom_hline(yintercept = c(-15,0), lty = "dashed", col = "grey") +
-            theme_bw()
-
-        df %>%
-            dplyr::filter(xrl > 1e-9, lsrain > 1e-7,
-                          xrl < 1e-3, lsrain < 1e-2) %>%
-            ggplot(aes(x = xrl, y = dbze)) +
-            geom_bin2d() +
-            geom_smooth(col = "red") +
-            scale_x_log10() +
-            ## scale_y_log10() +
-            scale_fill_distiller(palette = "GnBu") +
-            geom_hline(yintercept = c(-15,0), lty = "dashed", col = "grey") +
-            theme_bw()
+        
 
         df %<>% dplyr::mutate(dbze = replace(dbze, dbze < -1e29, NA))
         df %<>% tidyr::gather(type, q_precip, lssnow : aprsv) %>%
