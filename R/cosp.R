@@ -19,12 +19,18 @@ cosp.process <- function(ccraut,
     fname.tau    <- sprintf("%s_%s", experiment, "200405.01_cosp_cisccp_tau3d.nc")
     fname.reffl  <- sprintf("%s_%s", experiment, "200405.01_cosp_reffl.nc"       )
     fname.reffi  <- sprintf("%s_%s", experiment, "200405.01_cosp_reffi.nc"       )
+    fname.aclc   <- sprintf("%s_%s", experiment, "200405.01_cosp_aclc.nc"       )
+    fname.rain3d <- sprintf("%s_%s", experiment, "200405.01_rain3d.nc"       )
+    fname.rain2d <- sprintf("%s_%s", experiment, "200405.01_rain2d.nc"       )
 
     nc.lssnow <- ncdf4::nc_open(paste(path, fname.lssnow, sep = ""))
     nc.lsrain <- ncdf4::nc_open(paste(path, fname.lsrain, sep = ""))
     nc.tau <-    ncdf4::nc_open(paste(path, fname.tau   , sep = ""))
     nc.reffl <-  ncdf4::nc_open(paste(path, fname.reffl , sep = ""))
     nc.reffi <-  ncdf4::nc_open(paste(path, fname.reffi , sep = ""))
+    nc.aclc  <-  ncdf4::nc_open(paste(path, fname.aclc  , sep = ""))
+    nc.rain3d <- ncdf4::nc_open(paste(path, fname.rain3d, sep = ""))
+    nc.rain2d <- ncdf4::nc_open(paste(path, fname.rain2d, sep = ""))
 
     lon  <- ncdf4::ncvar_get(nc.lssnow, "lon")
     lat  <- ncdf4::ncvar_get(nc.lssnow, "lat")
@@ -36,7 +42,15 @@ cosp.process <- function(ccraut,
     tau     <- ncdf4::ncvar_get(nc.tau   , "cisccp_tau3d"   )
     reffl   <- ncdf4::ncvar_get(nc.reffl , "reffl"  )
     reffi   <- ncdf4::ncvar_get(nc.reffi , "reffi"  )
-
+    aclc    <- ncdf4::ncvar_get(nc.aclc  , "aclc"  )
+    xrl     <- ncdf4::ncvar_get(nc.rain3d, "xrl_na"  )
+    xsl     <- ncdf4::ncvar_get(nc.rain3d, "xsl_na"  )
+    aprlv   <- ncdf4::ncvar_get(nc.rain3d, "aprlv_na")
+    aprsv   <- ncdf4::ncvar_get(nc.rain3d, "aprsv_na")
+    aprl    <- ncdf4::ncvar_get(nc.rain2d, "aprl_na") %>%
+        apply(1:3, rep, 31) %>%
+        aperm(c(2,3,1,4)) 
+    
     ## somewhat laborious cloud fraction calculation
     cldfrac <- array(0, dim(lssnow))
     plyr::a_ply(1:100, 1, function(subcol) {
@@ -65,11 +79,15 @@ cosp.process <- function(ccraut,
                           time = as.vector(time)) %>%
             dplyr::mutate(lssnow  = as.vector(lssnow),
                           lsrain  = as.vector(lsrain),
+                          xrl     = as.vector(xrl  ),
+                          xsl     = as.vector(xsl  ),
+                          aprlv   = as.vector(aprlv),
+                          aprsv   = as.vector(aprsv),
                           dbze    = as.vector(dbze  ),
-                          fracout = as.vector(fracout)) %>%
-            dplyr::filter(fracout == 1)  %>%
-            ## snow or rain, not both
-            dplyr::filter(lssnow < 1e-8 | lsrain < 1e-8)
+                          aclc    = as.vector(aclc  ),
+                          ## cldfrac = as.vector(cldfrac ),
+                          aprl    = as.vector(aprl),
+                          fracout = as.vector(fracout))
         
 
         df %<>% dplyr::mutate(dbze = replace(dbze, dbze < -1e29, NA))
