@@ -106,8 +106,58 @@ cosp.process <- function(ccraut,
                 saveRDS(sprintf("cosp-teaser-%s.rds", experiment))
         }
 
+        df <- readRDS(sprintf("~/cosp-teaser-%s.rds", experiment))
+
+        df %>%
+            dplyr::filter(aprlv > 1e-7, lsrain > 1e-7,
+                          aprlv < 1e-2, lsrain < 1e-2) %>%
+            ggplot(aes(x = aprlv, y = lsrain)) +
+            geom_bin2d() +
+            geom_smooth(col = "red") +
+            scale_x_log10() +
+            scale_y_log10() +
+            scale_fill_distiller(palette = "GnBu") +
+            geom_abline(slope = 1, intercept = 0, lty = "dashed", col = "grey") +
+            theme_bw()
+    
+        df %>%
+            dplyr::filter(xrl > 1e-9, lsrain > 1e-7,
+                          xrl < 1e-3, lsrain < 1e-2) %>%
+            ggplot(aes(x = xrl, y = lsrain)) +
+            geom_bin2d() +
+            geom_smooth(col = "red") +
+            scale_x_log10() +
+            scale_y_log10() +
+            scale_fill_distiller(palette = "GnBu") +
+            geom_abline(slope = 1, intercept = 0, lty = "dashed", col = "grey") +
+            theme_bw()
+
+        df %>%
+            dplyr::filter(aprlv > 1e-7, lsrain > 1e-7,
+                          aprlv < 1e-2, lsrain < 1e-2) %>%
+            ggplot(aes(x = aprlv, y = dbze)) +
+            geom_bin2d() +
+            geom_smooth(col = "red") +
+            scale_x_log10() +
+            ## scale_y_log10() +
+            scale_fill_distiller(palette = "GnBu") +
+            geom_hline(yintercept = c(-15,0), lty = "dashed", col = "grey") +
+            theme_bw()
+
+        df %>%
+            dplyr::filter(xrl > 1e-9, lsrain > 1e-7,
+                          xrl < 1e-3, lsrain < 1e-2) %>%
+            ggplot(aes(x = xrl, y = dbze)) +
+            geom_bin2d() +
+            geom_smooth(col = "red") +
+            scale_x_log10() +
+            ## scale_y_log10() +
+            scale_fill_distiller(palette = "GnBu") +
+            geom_hline(yintercept = c(-15,0), lty = "dashed", col = "grey") +
+            theme_bw()
+
         df %<>% dplyr::mutate(dbze = replace(dbze, dbze < -1e29, NA))
-        df %<>% tidyr::gather(type, q_precip, lssnow.ic : lsrain) %>%
+        df %<>% tidyr::gather(type, q_precip, lssnow : aprsv) %>%
             dplyr::mutate(type = factor(type))
         ## df %<>% discretize(q_precip, c(0, 10 ^ seq(-7, -2, 0.2)))
         ## df %<>% discretize(dbze, c(-1000, seq(-50, -20, 10), seq(-15, 10, 5), 100))
@@ -115,7 +165,7 @@ cosp.process <- function(ccraut,
         ## df %<>% discretize(dbze, 30, as_factor = TRUE, equal_contents = TRUE)
         ## df %<>% plotutils::discretize(q_precip, 30, as_factor = FALSE, equal_contents = TRUE)
         df %<>% dplyr::mutate(q_precip = log10(q_precip)) %>%
-            plotutils::discretize(q_precip, seq(-8.75,-2.25,0.5), as_factor = FALSE) %>%
+            plotutils::discretize(q_precip, seq(-6.75,-2.25,0.5), as_factor = FALSE) %>%
                 dplyr::filter(!is.na(q_precip))
 
         df %>%
@@ -127,7 +177,7 @@ cosp.process <- function(ccraut,
             #geom_pointrange(aes(ymin = dbze - 1.96 * sd, ymax = dbze + 1.96 * sd )) +
             geom_violin() +
             ## scale_x_log10() +
-            scale_color_brewer(palette = "Set1") +
+            scale_fill_brewer(palette = "Set1") +
             ## coord_cartesian(ylim = c(-50, 10)) +
             theme_bw() +
             theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))
