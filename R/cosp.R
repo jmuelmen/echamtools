@@ -110,6 +110,32 @@ cosp.process <- function(ccraut,
                 saveRDS(sprintf("cosp-teaser-%s.rds", experiment))
         }
 
+        if (subcol == 1) {
+            df %>%
+                dplyr::select(aprlv, aprsv) %>%
+                tidyr::gather(type, flux, aprlv : aprsv) %>%
+                dplyr::mutate(type = factor(type)) %>%
+                dplyr::group_by(type) %>%
+                dplyr::mutate(frac.0 = mean(flux == 0)) %>%
+                dplyr::ungroup() %>%
+                dplyr::filter(flux != 0) %>%
+                saveRDS(sprintf("cosp-aprlv-aprsv-%s.rds", experiment))
+        }
+
+        if (subcol == 1) {
+            df %>%
+                dplyr::group_by(lon, lat, time) %>%
+                dplyr::summarize(aprlv.max = max(aprlv),
+                                 aprsv.max = max(aprsv)) %>%
+                dplyr::ungroup() %>%
+                tidyr::gather(type, flux, aprlv.max : aprsv.max) %>%
+                dplyr::mutate(type = factor(type)) %>%
+                dplyr::group_by(type) %>%
+                dplyr::mutate(frac.0 = mean(flux == 0)) %>%
+                dplyr::ungroup() %>%
+                saveRDS(sprintf("cosp-aprlv.max-aprsv.max-%s.rds", experiment))
+        }
+        
         df <- readRDS(sprintf("~/cosp-teaser-%s.rds", experiment))
         
 
