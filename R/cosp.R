@@ -50,6 +50,9 @@ cosp.process <- function(ccraut,
     aprl    <- ncdf4::ncvar_get(nc.rain2d, "aprl_na") %>%
         apply(1:3, rep, 31) %>%
         aperm(c(2,3,1,4)) 
+    aprs    <- ncdf4::ncvar_get(nc.rain2d, "aprs_na") %>%
+        apply(1:3, rep, 31) %>%
+        aperm(c(2,3,1,4)) 
     
     ## somewhat laborious cloud fraction calculation
     cldfrac <- array(0, dim(lssnow))
@@ -95,6 +98,7 @@ cosp.process <- function(ccraut,
                           aclc    = as.vector(aclc  ),
                           ## cldfrac = as.vector(cldfrac ),
                           aprl    = as.vector(aprl),
+                          aprs    = as.vector(aprs),
                           fracout = as.vector(fracout))
         
         if (subcol == 1) {
