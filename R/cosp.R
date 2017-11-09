@@ -137,7 +137,17 @@ cosp.process <- function(ccraut,
         }
         
         df <- readRDS(sprintf("~/cosp-teaser-%s.rds", experiment))
-        
+
+        df %>%
+            group_by(lon, lat, time) %>%
+            summarize(dbze.max = max(dbze),
+                      aprlv.max = max(aprlv),
+                      aprsv.max = max(aprsv),
+                      aprlv.max.dbze = aprlv[which.max(aprlv)],
+                      aprl = aprl[1],
+                      aprs = aprs[1]) %>%
+            saveRDS(sprintf("cosp2d-%s.rds", experiment))
+
 
         df %<>% dplyr::mutate(dbze = replace(dbze, dbze < -1e29, NA))
         df %<>% tidyr::gather(type, q_precip, lssnow : aprsv) %>%
