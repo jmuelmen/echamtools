@@ -14,14 +14,18 @@ cosp.process <- function(ccraut,
     print(sprintf("Experiment: %s", experiment))
 
     path <- sprintf("%s/%s/", path, experiment)
-    fname.lsrain <- sprintf("%s_%s", experiment, "200405.01_cosp_lsrain.nc"      )
-    fname.lssnow <- sprintf("%s_%s", experiment, "200405.01_cosp_lssnow.nc"      )
-    fname.tau    <- sprintf("%s_%s", experiment, "200405.01_cosp_cisccp_tau3d.nc")
-    fname.reffl  <- sprintf("%s_%s", experiment, "200405.01_cosp_reffl.nc"       )
-    fname.reffi  <- sprintf("%s_%s", experiment, "200405.01_cosp_reffi.nc"       )
-    fname.aclc   <- sprintf("%s_%s", experiment, "200405.01_cosp_aclc.nc"       )
-    fname.rain3d <- sprintf("%s_%s", experiment, "200405.01_rain3d.nc"       )
-    fname.rain2d <- sprintf("%s_%s", experiment, "200405.01_rain2d.nc"       )
+    fname.lsrain   <- sprintf("%s_%s", experiment, "200405.01_cosp_lsrain.nc"      )
+    fname.lssnow   <- sprintf("%s_%s", experiment, "200405.01_cosp_lssnow.nc"      )
+    fname.tau      <- sprintf("%s_%s", experiment, "200405.01_cosp_cisccp_tau3d.nc")
+    fname.reffl    <- sprintf("%s_%s", experiment, "200405.01_cosp_reffl.nc"       )
+    fname.reffi    <- sprintf("%s_%s", experiment, "200405.01_cosp_reffi.nc"       )
+    fname.aclc     <- sprintf("%s_%s", experiment, "200405.01_cosp_aclc.nc"       )
+    fname.tm1      <- sprintf("%s_%s", experiment, "200405.01_cosp_tm1.nc"       )
+    fname.tm1_cosp <- sprintf("%s_%s", experiment, "200405.01_cosp_tm1_cosp.nc"       )
+    fname.xl       <- sprintf("%s_%s", experiment, "200405.01_cosp_xl.nc"       )
+    fname.xi       <- sprintf("%s_%s", experiment, "200405.01_cosp_xi.nc"       )
+    fname.rain3d   <- sprintf("%s_%s", experiment, "200405.01_rain3d.nc"       )
+    fname.rain2d   <- sprintf("%s_%s", experiment, "200405.01_rain2d.nc"       )
 
     nc.lssnow <- ncdf4::nc_open(paste(path, fname.lssnow, sep = ""))
     nc.lsrain <- ncdf4::nc_open(paste(path, fname.lsrain, sep = ""))
@@ -29,6 +33,10 @@ cosp.process <- function(ccraut,
     nc.reffl <-  ncdf4::nc_open(paste(path, fname.reffl , sep = ""))
     nc.reffi <-  ncdf4::nc_open(paste(path, fname.reffi , sep = ""))
     nc.aclc  <-  ncdf4::nc_open(paste(path, fname.aclc  , sep = ""))
+    nc.tm1      <-  ncdf4::nc_open(paste(path, fname.tm1     , sep = ""))
+    nc.tm1_cosp <-  ncdf4::nc_open(paste(path, fname.tm1_cosp, sep = ""))
+    nc.xl       <-  ncdf4::nc_open(paste(path, fname.xl      , sep = ""))
+    nc.xi       <-  ncdf4::nc_open(paste(path, fname.xi      , sep = ""))
     nc.rain3d <- ncdf4::nc_open(paste(path, fname.rain3d, sep = ""))
     nc.rain2d <- ncdf4::nc_open(paste(path, fname.rain2d, sep = ""))
 
@@ -43,6 +51,10 @@ cosp.process <- function(ccraut,
     reffl   <- ncdf4::ncvar_get(nc.reffl , "reffl"  )
     reffi   <- ncdf4::ncvar_get(nc.reffi , "reffi"  )
     aclc    <- ncdf4::ncvar_get(nc.aclc  , "aclc"  )
+    tm1     <- ncdf4::ncvar_get(nc.tm1     , "tm1" )
+    tm1_cosp<- ncdf4::ncvar_get(nc.tm1_cosp, "tm1_cosp"  )
+    xl      <- ncdf4::ncvar_get(nc.xl      , "xl" )
+    xi      <- ncdf4::ncvar_get(nc.xi      , "xi"  )
     xrl     <- ncdf4::ncvar_get(nc.rain3d, "xrl_na"  )
     xsl     <- ncdf4::ncvar_get(nc.rain3d, "xsl_na"  )
     aprlv   <- ncdf4::ncvar_get(nc.rain3d, "aprlv_na")
@@ -96,6 +108,10 @@ cosp.process <- function(ccraut,
                           aprsv   = as.vector(aprsv),
                           dbze    = as.vector(dbze  ),
                           aclc    = as.vector(aclc  ),
+                          tm1      = as.vector(tm1     ),
+                          tm1_cosp = as.vector(tm1_cosp),
+                          xl       = as.vector(xl      ),
+                          xi       = as.vector(xi      ),
                           ## cldfrac = as.vector(cldfrac ),
                           aprl    = as.vector(aprl),
                           aprs    = as.vector(aprs),
