@@ -66,6 +66,18 @@ cosp.process <- function(ccraut,
         apply(1:3, rep, 31) %>%
         aperm(c(2,3,1,4)) 
     
+    label.vertical.features <- function(vfm) {
+        x <- vfm
+        if (length(x) == 0)
+            return(x)
+        diff.x <- diff(c(-1, x)) ## guarantee that the first group of 1's is preceded by a transition
+        labels <- cumsum(diff.x != 0 & x != 0) * (x != 0) ## count up the edges
+        labels
+    }
+
+    layer <- apply(aclc > 0, c(1,2,4), label.vertical.features) %>%
+        aperm(c(2,3,1,4))
+        
     ## somewhat laborious cloud fraction calculation
     cldfrac <- array(0, dim(lssnow))
     plyr::a_ply(1:100, 1, function(subcol) {
@@ -115,6 +127,7 @@ cosp.process <- function(ccraut,
                           ## cldfrac = as.vector(cldfrac ),
                           aprl    = as.vector(aprl),
                           aprs    = as.vector(aprs),
+                          layer = as.vector(layer),
                           fracout = as.vector(fracout))
         
         if (subcol == 1) {
