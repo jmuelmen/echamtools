@@ -164,6 +164,34 @@ cosp.process <- function(ccraut,
                 dplyr::ungroup() %>%
                 saveRDS(sprintf("cosp-aprlv.max-aprsv.max-%s.rds", experiment))
         }
+
+        tmp <- df
+        tmp %<>% mutate(layer = as.vector(vfm)) 
+            ## filter(abs(time - 1675.883) < 0.1,
+            ##        lon == 73.125,
+            ##        abs(lat - 0.93) < 0.01 ) %>%
+        tmp %<>% group_by(lon, lat, time) 
+        tmp %<>% filter(max(dbze) > -15) 
+
+        tmp %<>% summarize(temp.highest.drizzle = ifelse(any(dbze > -15),
+                                                         tm1_cosp[min(lev[dbze > -15])],
+                                                         NA),
+                           temp.highest.rain = ifelse(any(dbze > 0),
+                                                      tm1_cosp[min(lev[dbze > 0])],
+                                                      NA),
+                           highest.drizzle.layer = ifelse(any(layer > 0 & dbze > -15),
+                                                          min(layer[layer > 0 & dbze > -15]),
+                                                          NA),
+                           highest.rain.layer = ifelse(any(layer > 0 & dbze > 0),
+                                                       min(layer[layer > 0 & dbze > 0]),
+                                                       NA),
+                           cold.drizzle = ifelse(!is.na(highest.drizzle.layer),
+                                                 any(xi[layer == highest.drizzle.layer] > 1e-7),
+                                                 NA),
+                           cold.rain = ifelse(!is.na(highest.rain.layer),
+                                              any(xi[layer == highest.rain.layer] > 1e-7),
+                                              NA))
+                           
         
         df <- readRDS(sprintf("~/cosp-teaser-%s.rds", experiment))
 
