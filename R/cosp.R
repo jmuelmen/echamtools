@@ -57,6 +57,7 @@ cosp.process <- function(ccraut,
     xi      <- ncdf4::ncvar_get(nc.xi      , "xi"  )
     xrl     <- ncdf4::ncvar_get(nc.rain3d, "xrl_na"  )
     xsl     <- ncdf4::ncvar_get(nc.rain3d, "xsl_na"  )
+    qaut    <- ncdf4::ncvar_get(nc.rain3d, "autoconv_na"  )
     aprlv   <- ncdf4::ncvar_get(nc.rain3d, "aprlv_na")
     aprsv   <- ncdf4::ncvar_get(nc.rain3d, "aprsv_na")
     aprl    <- ncdf4::ncvar_get(nc.rain2d, "aprl_na") %>%
@@ -116,6 +117,7 @@ cosp.process <- function(ccraut,
                           lsrain  = as.vector(lsrain),
                           xrl     = as.vector(xrl  ),
                           xsl     = as.vector(xsl  ),
+                          qaut    = as.vector(qaut ),
                           aprlv   = as.vector(aprlv),
                           aprsv   = as.vector(aprsv),
                           dbze    = as.vector(dbze  ),
@@ -134,6 +136,7 @@ cosp.process <- function(ccraut,
         rm(lsrain  )
         rm(xrl     )
         rm(xsl     )
+        rm(qaut    )
         rm(aprlv   )
         rm(aprsv   )
         rm(dbze    )
