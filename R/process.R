@@ -81,6 +81,98 @@ process.precip.profile.echam <-
     }
 
 #' @export
+process.precip.cosp.profile.echam <-
+    function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             flux = TRUE,
+             subsample = NULL) {
+        doParallel::registerDoParallel(cores = ncores)
+        expand.grid(year = years, month = 1:12) %>%
+            ## expand.grid(year = 2000, month = 1) %>%
+            plyr::ddply(~ year + month, function(x) {
+                gc()
+                with(x, {
+                    fname.lsrain   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_lsrain"      )
+                    fname.lssnow   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_lssnow"      )
+                    fname.tau      <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_cisccp_tau3d")
+                    fname.reffl    <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_reffl"       )
+                    fname.reffi    <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_reffi"       )
+                    fname.aclc     <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_aclc"       )
+                    fname.tm1      <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_tm1"       )
+                    fname.tm1_cosp <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_tm1_cosp"       )
+                    fname.xl       <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_xl"       )
+                    fname.xi       <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_xi"       )
+                    fname.rain3d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain3d"       )
+                    fname.rain2d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain2d"       )
+                    fname.dbze     <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_001"       )
+
+                    ## if (any(class(nc.lssnow   <- try(ncdf4::nc_open(fname.lssnow  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lssnow   ), add = TRUE)
+                    ## if (any(class(nc.lsrain   <- try(ncdf4::nc_open(fname.lsrain  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lsrain   ), add = TRUE)
+                    ## if (any(class(nc.tau      <- try(ncdf4::nc_open(fname.tau     ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tau      ), add = TRUE)
+                    ## if (any(class(nc.reffl    <- try(ncdf4::nc_open(fname.reffl   ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.reffl    ), add = TRUE)
+                    ## if (any(class(nc.reffi    <- try(ncdf4::nc_open(fname.reffi   ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.reffi    ), add = TRUE)
+                    if (any(class(nc.aclc     <- try(ncdf4::nc_open(fname.aclc    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.aclc     ), add = TRUE)
+                    ## if (any(class(nc.tm1      <- try(ncdf4::nc_open(fname.tm1     ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1      ), add = TRUE)
+                    if (any(class(nc.tm1_cosp <- try(ncdf4::nc_open(fname.tm1_cosp), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1_cosp ), add = TRUE)
+                    if (any(class(nc.xl       <- try(ncdf4::nc_open(fname.xl      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xl       ), add = TRUE)
+                    if (any(class(nc.xi       <- try(ncdf4::nc_open(fname.xi      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xi       ), add = TRUE)
+                    if (any(class(nc.rain3d   <- try(ncdf4::nc_open(fname.rain3d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain3d   ), add = TRUE)
+                    if (any(class(nc.rain2d   <- try(ncdf4::nc_open(fname.rain2d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain2d   ), add = TRUE)
+                    if (any(class(nc.dbze     <- try(ncdf4::nc_open(fname.dbze    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.dbze     ), add = TRUE)
+
+                    lon  <- ncdf4::ncvar_get(nc.rain3d, "lon")
+                    lat  <- ncdf4::ncvar_get(nc.rain3d, "lat")
+                    lev  <- ncdf4::ncvar_get(nc.rain3d, "mlev")
+                    time <- ncdf4::ncvar_get(nc.rain3d, "time")
+
+                    df <- plyr::ldply(1:length(t), function(i) {
+                        ## get aclc first for further processing
+                        aclc  <- ncdf4::ncvar_get(nc.aclc  , "aclc"  )
+                        layer <- apply(aclc > 0, 1:2, label.vertical.features) %>% aperm(c(2,3,1))
+
+                        df <- expand.grid(lon = as.vector(lon),
+                                          lat = as.vector(lat),
+                                          lev = as.vector(lev)) %>%
+                            dplyr::mutate(aprlv    = as.vector(ncdf4::ncvar_get(nc.rain3d  , "aprlv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          aprsv    = as.vector(ncdf4::ncvar_get(nc.rain3d  , "aprsv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          dbze     = as.vector(ncdf4::ncvar_get(nc.dbze    , "dbze"    , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          aclc     = as.vector(aclc),
+                                          tm1_cosp = as.vector(ncdf4::ncvar_get(nc.tm1_cosp, "tm1_cosp", start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          xl       = as.vector(ncdf4::ncvar_get(nc.xl      , "xl"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          xi       = as.vector(ncdf4::ncvar_get(nc.xi      , "xi"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          layer    = as.vector(layer),
+                                          fracout  = as.vector(ncdf4::ncvar_get(nc.dbze    , "fracout" , start = c(1,1,1,i), count = c(-1,-1,-1,1)))) %>%
+                            dplyr::group_by(lon, lat, time) %>%
+                            dplyr::summarize(dbze.max = max(dbze),
+                                             aprlv.max = max(aprlv),
+                                             aprsv.max = max(aprsv),
+                                             aprlv.max.dbze = aprlv[which.max(aprlv)],
+                                             highest.drizzle.layer = ifelse(any(layer > 0 & dbze > -15),
+                                                                            min(layer[layer > 0 & dbze > -15]),
+                                                                            NA),
+                                             highest.rain.layer = ifelse(any(layer > 0 & dbze > 0),
+                                                                         min(layer[layer > 0 & dbze > 0]),
+                                                                         NA),
+                                             cold.drizzle = ifelse(!is.na(highest.drizzle.layer),
+                                                                   any(xi[layer == highest.drizzle.layer] > 1e-7),
+                                                                   NA),
+                                             cold.rain = ifelse(!is.na(highest.rain.layer),
+                                                                any(xi[layer == highest.rain.layer] > 1e-7),
+                                                                NA)) %>%
+                            dplyr::ungroup() %>%
+                            dplyr::mutate(time = time[i], 
+                                          aprl = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))),
+                                          aprs = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1))))
+                    }, .parallel = FALSE, .progress = "text")
+                })
+            }, .parallel = TRUE) -> df
+        
+        saveRDS(df, sprintf("%s%s%s.rds", out.prefix, experiment, ifelse(flux, "", "-mr")))
+    }
+
+#' @export
 process.pr.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
              experiment = "amip-rain-15", out.prefix = "",
