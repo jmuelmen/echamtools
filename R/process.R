@@ -169,7 +169,7 @@ process.precip.cosp.profile.echam <-
                 })
             }, .parallel = TRUE) -> df
         
-        saveRDS(df, sprintf("%s%s%s.rds", out.prefix, experiment, ifelse(flux, "", "-mr")))
+        saveRDS(df, sprintf("%scosp-%s%s.rds", out.prefix, experiment, ifelse(flux, "", "-mr")))
     }
 
 #' @export
