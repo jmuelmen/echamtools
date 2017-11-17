@@ -137,13 +137,13 @@ process.precip.cosp.profile.echam <-
                                           lev = as.vector(lev)) %>%
                             dplyr::mutate(aprlv    = as.vector(ncdf4::ncvar_get(nc.rain3d  , "aprlv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           aprsv    = as.vector(ncdf4::ncvar_get(nc.rain3d  , "aprsv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1))),
-                                          dbze     = as.vector(ncdf4::ncvar_get(nc.dbze    , "dbze"    , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          dbze     = as.vector(ncdf4::ncvar_get(nc.dbze    , "dbze94_001"    , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           aclc     = as.vector(aclc),
                                           tm1_cosp = as.vector(ncdf4::ncvar_get(nc.tm1_cosp, "tm1_cosp", start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           xl       = as.vector(ncdf4::ncvar_get(nc.xl      , "xl"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           xi       = as.vector(ncdf4::ncvar_get(nc.xi      , "xi"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           layer    = as.vector(layer),
-                                          fracout  = as.vector(ncdf4::ncvar_get(nc.dbze    , "fracout" , start = c(1,1,1,i), count = c(-1,-1,-1,1)))) %>%
+                                          fracout  = as.vector(ncdf4::ncvar_get(nc.dbze    , "frac_out_001" , start = c(1,1,1,i), count = c(-1,-1,-1,1)))) %>%
                             dplyr::group_by(lon, lat, time) %>%
                             dplyr::summarize(dbze.max = max(dbze),
                                              aprlv.max = max(aprlv),
