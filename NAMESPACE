@@ -2,10 +2,12 @@
 
 export(cfodd.plot)
 export(cfodd.process)
+export(cosp.process)
 export(get.mask.echam)
 export(get.pr.echam)
 export(get.rad.echam)
 export(process.pr.echam)
+export(process.precip.cosp.profile.echam)
 export(process.precip.profile.echam)
 export(process.rad.echam)
 import(dplyr)
