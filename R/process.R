@@ -129,7 +129,7 @@ process.precip.cosp.profile.echam <-
 
                     df <- plyr::ldply(1:length(t), function(i) {
                         ## get aclc first for further processing
-                        aclc  <- ncdf4::ncvar_get(nc.aclc  , "aclc"  )
+                        aclc  <- ncdf4::ncvar_get(nc.aclc  , "aclc", start = c(1,1,1,i), count = c(-1,-1,-1,1))
                         layer <- apply(aclc > 0, 1:2, label.vertical.features) %>% aperm(c(2,3,1))
 
                         df <- expand.grid(lon = as.vector(lon),
