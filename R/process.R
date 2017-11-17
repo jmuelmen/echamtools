@@ -144,7 +144,7 @@ process.precip.cosp.profile.echam <-
                                           xi       = as.vector(ncdf4::ncvar_get(nc.xi      , "xi"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           layer    = as.vector(layer),
                                           fracout  = as.vector(ncdf4::ncvar_get(nc.dbze    , "frac_out_001" , start = c(1,1,1,i), count = c(-1,-1,-1,1)))) %>%
-                            dplyr::group_by(lon, lat, time) %>%
+                            dplyr::group_by(lon, lat) %>%
                             dplyr::summarize(dbze.max = max(dbze),
                                              aprlv.max = max(aprlv),
                                              aprsv.max = max(aprsv),
