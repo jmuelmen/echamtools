@@ -85,7 +85,7 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                                               cautalpha, cautbeta, amip, pi)
                         readRDS(sprintf("%s/rad-%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
-                            cbind(ccraut = ccraut,
+                            dplyr::mutate(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth,
                                   cautalpha = cautalpha,
@@ -117,7 +117,7 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                         ## print(experiment)
                         readRDS(sprintf("%s/%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
-                            cbind(ccraut = ccraut,
+                            dplyr::mutate(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth,
                                   cautalpha = cautalpha,
