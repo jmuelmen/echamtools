@@ -83,7 +83,10 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
                                               cautalpha, cautbeta, amip, pi)
-                        readRDS(sprintf("%s/rad-%s.rds", path, experiment)) %>%
+                        df <- try(readRDS(sprintf("%s/rad-%s.rds", path, experiment)))
+                        if (any(class(df) == "try-error"))
+                            df <- try(readRDS(sprintf("%s/rad-%s_no-cosp.rds", path, experiment)))
+                        df %>%
                             filter_whole_years() %>%
                             dplyr::mutate(ccraut = ccraut,
                                   ccauloc = ccauloc,
