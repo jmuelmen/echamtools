@@ -3,6 +3,7 @@
 export(cfodd.plot)
 export(cfodd.process)
 export(cosp.process)
+export(get.cosp.echam)
 export(get.mask.echam)
 export(get.pr.echam)
 export(get.rad.echam)
