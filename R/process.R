@@ -162,9 +162,11 @@ process.precip.cosp.profile.echam <-
                                                                 any(xi[layer == highest.rain.layer] > 1e-7),
                                                                 NA)) %>%
                             dplyr::ungroup() %>%
-                            dplyr::mutate(time = time[i], 
-                                          aprl = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))),
-                                          aprs = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1))))
+                            dplyr::mutate(time = time[i]) %>%
+                            dplyr::left_join(expand.grid(lon, lat) %>%
+                                             dplyr::mutate(aprl = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))),
+                                                           aprs = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1)))),
+                                             by = c("lon", "lat"))
                     }, .parallel = FALSE, .progress = "text")
                 })
             }, .parallel = TRUE) -> df
