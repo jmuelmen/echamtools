@@ -167,6 +167,8 @@ process.precip.cosp.profile.echam <-
                                              dplyr::mutate(aprl = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))),
                                                            aprs = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1)))),
                                              by = c("lon", "lat"))
+                        print(dim(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))))
+                        df
                     }, .parallel = FALSE, .progress = "text")
                 })
             }, .parallel = TRUE) -> df
