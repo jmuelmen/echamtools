@@ -62,7 +62,7 @@ process.precip.profile.echam <-
                             df <- expand.grid(lon = as.vector(lon),
                                               lat = as.vector(lat)) %>%
                                 cbind(time = t[i], mask = as.vector(mask))
-                        }, .parallel = FALSE, .progress = "text")
+                        }, .parallel = FALSE, .progress = "none")
                         ncdf4::nc_close(nc)
                         saveRDS(df, out.name)
                     }
@@ -163,7 +163,8 @@ process.precip.cosp.profile.echam <-
                                                                 NA)) %>%
                             dplyr::ungroup() %>%
                             dplyr::mutate(time = time[i]) %>%
-                            dplyr::left_join(expand.grid(lon, lat) %>%
+                            dplyr::left_join(expand.grid(as.vector(lon),
+                                                         as.vector(lat)) %>%
                                              dplyr::mutate(aprl = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))),
                                                            aprs = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1)))),
                                              by = c("lon", "lat"))
@@ -245,7 +246,7 @@ process.pr.echam <-
                     ##                   frac.pr = sum(pr - prc) / Pr)
                     ## })
                 })
-            }, .progress = "text", .parallel = TRUE) -> df
+            }, .progress = "none", .parallel = TRUE) -> df
         saveRDS(df, sprintf("%spr-hist-%s.rds", out.prefix, experiment))
     }
 
@@ -308,6 +309,6 @@ process.rad.echam <-
                     ##        df,
                     ##        dplyr::slice(df, seq(1, nrow(df), subsample)))
                 })
-            }, .progress = "text", .parallel = FALSE) -> df
+            }, .progress = "none", .parallel = FALSE) -> df
         saveRDS(df, sprintf("%srad-%s.rds", out.prefix, experiment))
     }
