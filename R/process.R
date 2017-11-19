@@ -131,6 +131,8 @@ process.precip.cosp.profile.echam <-
                         ## get aclc first for further processing
                         aclc  <- ncdf4::ncvar_get(nc.aclc  , "aclc", start = c(1,1,1,i), count = c(-1,-1,-1,1))
                         layer <- apply(aclc > 0, 1:2, label.vertical.features) %>% aperm(c(2,3,1))
+                        aprl <- rep(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1)), length(lev))
+                        aprs <- rep(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1)), length(lev))
 
                         df <- expand.grid(lon = as.vector(lon),
                                           lat = as.vector(lat),
@@ -143,9 +145,13 @@ process.precip.cosp.profile.echam <-
                                           xl       = as.vector(ncdf4::ncvar_get(nc.xl      , "xl"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           xi       = as.vector(ncdf4::ncvar_get(nc.xi      , "xi"      , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           layer    = as.vector(layer),
-                                          fracout  = as.vector(ncdf4::ncvar_get(nc.dbze    , "frac_out_001" , start = c(1,1,1,i), count = c(-1,-1,-1,1)))) %>%
+                                          fracout  = as.vector(ncdf4::ncvar_get(nc.dbze    , "frac_out_001" , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          aprl = aprl,
+                                          aprs = aprs) %>%
                             dplyr::group_by(lon, lat) %>%
-                            dplyr::summarize(dbze.max = max(dbze),
+                            dplyr::summarize(aprl = aprl[1],
+                                             aprs = aprs[1],
+                                             dbze.max = max(dbze),
                                              aprlv.max = max(aprlv),
                                              aprsv.max = max(aprsv),
                                              aprlv.max.dbze = aprlv[which.max(aprlv)],
@@ -162,15 +168,10 @@ process.precip.cosp.profile.echam <-
                                                                 any(xi[layer == highest.rain.layer] > 1e-7),
                                                                 NA)) %>%
                             dplyr::ungroup() %>%
-                            dplyr::mutate(time = time[i]) %>%
-                            dplyr::left_join(expand.grid(as.vector(lon),
-                                                         as.vector(lat)) %>%
-                                             dplyr::mutate(aprl = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))),
-                                                           aprs = as.vector(ncdf4::ncvar_get(nc.rain2d  , "aprs_na", start = c(1,1,i), count = c(-1,-1,1)))),
-                                             by = c("lon", "lat"))
+                            dplyr::mutate(time = time[i])
                         print(dim(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))))
                         df
-                    }, .parallel = FALSE, .progress = "text")
+                    }, .parallel = FALSE, .progress = "none")
                 })
             }, .parallel = TRUE) -> df
         
