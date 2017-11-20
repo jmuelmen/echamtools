@@ -44,24 +44,28 @@ process.precip.profile.echam <-
                         t <- ncdf4::ncvar_get(nc, "time")
                         lon <- ncdf4::ncvar_get(nc, "lon")
                         lat <- ncdf4::ncvar_get(nc, "lat")
-                        df <- plyr::ldply(1:length(t), function(i) {
-                            if (flux) { ## mask based on fluxes
-                                qr <- ncdf4::ncvar_get(nc, "aprlv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip flux
-                                qs <- ncdf4::ncvar_get(nc, "aprsv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip flux
-                                rain.mask <- apply(qr, c(1,2), function(x) any(x > 1e-7)) ## 1e-7 is the cutoff in CESM... ECHAM appears not to have a cutoff
-                                snow.mask <- apply(qs, c(1,2), function(x) any(x > 1e-7))
-                            } else { ## mask based on mixing ratios
-                                qr <- ncdf4::ncvar_get(nc, "xrl_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip mixing ratio
-                                qs <- ncdf4::ncvar_get(nc, "xsl_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip mixing ratio
-                                rain.mask <- apply(qr, c(1,2), function(x) any(x > 1e-12))
-                                snow.mask <- apply(qs, c(1,2), function(x) any(x > 1e-12))
-                            }
-                            mask <- factor(ifelse(rain.mask, ifelse(snow.mask, "cold", "warm"),
-                                           ifelse(snow.mask, "snow", "dry")),
-                                           levels = c("dry", "warm", "cold", "snow"))
-                            df <- expand.grid(lon = as.vector(lon),
-                                              lat = as.vector(lat)) %>%
-                                cbind(time = t[i], mask = as.vector(mask))
+                        df <- plyr::ldply(c(1e-7, 0.01 / 24 / 3600, 0.01 / 3600, 0.1 / 3600), function(flux.thresh) {
+                            plyr::ldply(1:length(t), function(i) {
+                                if (flux) { ## mask based on fluxes
+                                    qr <- ncdf4::ncvar_get(nc, "aprlv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip flux
+                                    qs <- ncdf4::ncvar_get(nc, "aprsv_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip flux
+                                    rain.mask <- apply(qr, c(1,2), function(x) any(x > flux.thresh)) ## 1e-7 is the cutoff in CESM... ECHAM appears not to have a cutoff
+                                    snow.mask <- apply(qs, c(1,2), function(x) any(x > flux.thresh))
+                                } else { ## mask based on mixing ratios
+                                    qr <- ncdf4::ncvar_get(nc, "xrl_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved liquid precip mixing ratio
+                                    qs <- ncdf4::ncvar_get(nc, "xsl_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)) ## vertically resolved solid precip mixing ratio
+                                    rain.mask <- apply(qr, c(1,2), function(x) any(x > 1e-12))
+                                    snow.mask <- apply(qs, c(1,2), function(x) any(x > 1e-12))
+                                }
+                                mask <- factor(ifelse(rain.mask, ifelse(snow.mask, "cold", "warm"),
+                                               ifelse(snow.mask, "snow", "dry")),
+                                               levels = c("dry", "warm", "cold", "snow"))
+                                df <- expand.grid(lon = as.vector(lon),
+                                                  lat = as.vector(lat)) %>%
+                                    dplyr::mutate(time = t[i],
+                                                  mask = as.vector(mask),
+                                                  flux.thresh = flux.thresh)
+                            }, .parallel = FALSE, .progress = "none")
                         }, .parallel = FALSE, .progress = "none")
                         ncdf4::nc_close(nc)
                         saveRDS(df, out.name)
