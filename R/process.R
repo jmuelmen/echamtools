@@ -77,7 +77,7 @@ process.precip.profile.echam <-
                          t <- unique(df$time)
                          dplyr::filter(df, time %in% t[seq(1, length(t), by = subsample)])
                      }) %>%
-                        plyr::ddply(~ lon + lat, function(x) table(x$mask))
+                        plyr::ddply(~ lon + lat + flux.thresh, function(x) table(x$mask))
                 })
             }, .parallel = TRUE) -> df
         
