@@ -63,13 +63,15 @@ process.precip.profile.echam <-
                                 df <- expand.grid(lon = as.vector(lon),
                                                   lat = as.vector(lat)) %>%
                                     dplyr::mutate(time = t[i],
-                                                  mask = as.vector(mask),
+                                                  mask = mask,
                                                   flux.thresh = flux.thresh)
                             }, .parallel = FALSE, .progress = "none")
                         }, .parallel = FALSE, .progress = "none")
                         ncdf4::nc_close(nc)
                         saveRDS(df, out.name)
                     }
+                    print(out.name)
+                    str(df)
                     ## if subsampling is requested, do it here
                     (if (is.null(subsample))
                          df
@@ -80,8 +82,10 @@ process.precip.profile.echam <-
                         plyr::ddply(~ lon + lat + flux.thresh, function(x) table(x$mask))
                 })
             }, .parallel = TRUE) -> df
-        
+
+        str(df)
         saveRDS(df, sprintf("%s%s%s.rds", out.prefix, experiment, ifelse(flux, "", "-mr")))
+        df
     }
 
 #' @export
