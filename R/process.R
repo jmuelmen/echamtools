@@ -187,6 +187,89 @@ process.precip.cosp.profile.echam <-
     }
 
 #' @export
+process.cfodd.echam <-
+    function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             flux = TRUE,
+             subsample = NULL) {
+        doParallel::registerDoParallel(cores = ncores)
+        expand.grid(year = years, month = 1:12) %>%
+            ## expand.grid(year = 2000, month = 1) %>%
+            plyr::ddply(~ year + month, function(x) {
+                gc()
+                with(x, {
+                    fname.lsrain   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_lsrain"      )
+                    fname.lssnow   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_lssnow"      )
+                    fname.tau      <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_cisccp_tau3d")
+                    fname.reffl    <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_reffl"       )
+                    fname.reffi    <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_reffi"       )
+                    fname.aclc     <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_aclc"       )
+                    fname.tm1      <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_tm1"       )
+                    fname.tm1_cosp <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_tm1_cosp"       )
+                    fname.xl       <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_xl"       )
+                    fname.xi       <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_xi"       )
+                    fname.rain3d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain3d"       )
+                    fname.rain2d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain2d"       )
+                    fname.dbze     <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_001"       )
+                    
+                    if (any(class(nc.lssnow   <- try(ncdf4::nc_open(fname.lssnow  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lssnow   ), add = TRUE)
+                    if (any(class(nc.lsrain   <- try(ncdf4::nc_open(fname.lsrain  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lsrain   ), add = TRUE)
+                    if (any(class(nc.tau      <- try(ncdf4::nc_open(fname.tau     ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tau      ), add = TRUE)
+                    if (any(class(nc.reffl    <- try(ncdf4::nc_open(fname.reffl   ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.reffl    ), add = TRUE)
+                    if (any(class(nc.reffi    <- try(ncdf4::nc_open(fname.reffi   ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.reffi    ), add = TRUE)
+                    ## if (any(class(nc.aclc     <- try(ncdf4::nc_open(fname.aclc    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.aclc     ), add = TRUE)
+                    ## if (any(class(nc.tm1      <- try(ncdf4::nc_open(fname.tm1     ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1      ), add = TRUE)
+                    if (any(class(nc.tm1_cosp <- try(ncdf4::nc_open(fname.tm1_cosp), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1_cosp ), add = TRUE)
+                    ## if (any(class(nc.xl       <- try(ncdf4::nc_open(fname.xl      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xl       ), add = TRUE)
+                    ## if (any(class(nc.xi       <- try(ncdf4::nc_open(fname.xi      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xi       ), add = TRUE)
+                    ## if (any(class(nc.rain3d   <- try(ncdf4::nc_open(fname.rain3d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain3d   ), add = TRUE)
+                    ## if (any(class(nc.rain2d   <- try(ncdf4::nc_open(fname.rain2d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain2d   ), add = TRUE)
+                    if (any(class(nc.dbze     <- try(ncdf4::nc_open(fname.dbze    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.dbze     ), add = TRUE)
+
+                    lon  <- ncdf4::ncvar_get(nc.rain3d, "lon")
+                    lat  <- ncdf4::ncvar_get(nc.rain3d, "lat")
+                    lev  <- ncdf4::ncvar_get(nc.rain3d, "mlev")
+                    time <- ncdf4::ncvar_get(nc.rain3d, "time")
+                    
+                    df <- plyr::ldply(1:length(t), function(i) {
+                        ## get fracout and reffi first for masking
+                        reffi   <- ncdf4::ncvar_get(nc.reffi  , "reffi", start = c(1,1,1,i), count = c(-1,-1,-1,1))
+                        fracout <- ncdf4::ncvar_get(nc.dbze   , "frac_out_001" , start = c(1,1,1,i), count = c(-1,-1,-1,1))
+                        mask <- (apply(reffi, c(1,2), function(x) rep(all(x == 0 | x == 4), 31)) &
+                                 apply(fracout, c(1,2), function(x) rep(any(x == 1), 31)))  %>%
+                            aperm(c(2,3,1))
+                        ## compute layers based on fracout or on aclc > 0?
+                        layer <- apply(fracout, 1:2, label.vertical.features) %>% aperm(c(2,3,1))
+
+                        df <- expand.grid(lon = as.vector(lon),
+                                          lat = as.vector(lat),
+                                          lev = as.vector(lev)) %>%
+                            dplyr::mutate(aclc     = as.vector(ncdf4::ncvar_get(nc.aclc, "aclc"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          layer    = as.vector(layer),
+                                          tm1_cosp = as.vector(ncdf4::ncvar_get(nc.tm1_cosp, "tm1_cosp"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          lssnow   = as.vector(ncdf4::ncvar_get(nc.lssnow  , "lssnow"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          lsrain   = as.vector(ncdf4::ncvar_get(nc.lsrain  , "lsrain"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          tau      = as.vector(ncdf4::ncvar_get(nc.tau     , "cisccp_tau3d"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          dbze     = as.vector(ncdf4::ncvar_get(nc.dbze    , "dbze94_001"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          reffl    = as.vector(ncdf4::ncvar_get(nc.reffl   , "reffl"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
+                                          reffi    = as.vector(reffi),
+                                          fracout  = as.vector(fracout)) %>%
+                            dplyr::filter(as.vector(mask)) %>%
+                            dplyr::group_by(lon, lat) %>%
+                            dplyr::filter(layer == max(layer)) %>%
+                            dplyr::mutate(tautot = cumsum(tau)) %>%
+                            dplyr::mutate(refftop = reffl[1]) %>%  ## check this
+                            dplyr::ungroup() %>%
+                            dplyr::mutate(time = time[i])
+                    }, .parallel = FALSE, .progress = "none")
+                })
+            }, .parallel = TRUE) -> df
+        saveRDS(df, sprintf("%scfodd-%s.rds", out.prefix, experiment))
+    }
+
+#' @export
 process.pr.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
              experiment = "amip-rain-15", out.prefix = "",
