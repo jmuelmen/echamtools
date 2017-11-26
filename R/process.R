@@ -219,7 +219,7 @@ process.cfodd.echam <-
                     if (any(class(nc.tau      <- try(ncdf4::nc_open(fname.tau     ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tau      ), add = TRUE)
                     if (any(class(nc.reffl    <- try(ncdf4::nc_open(fname.reffl   ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.reffl    ), add = TRUE)
                     if (any(class(nc.reffi    <- try(ncdf4::nc_open(fname.reffi   ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.reffi    ), add = TRUE)
-                    ## if (any(class(nc.aclc     <- try(ncdf4::nc_open(fname.aclc    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.aclc     ), add = TRUE)
+                    if (any(class(nc.aclc     <- try(ncdf4::nc_open(fname.aclc    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.aclc     ), add = TRUE)
                     ## if (any(class(nc.tm1      <- try(ncdf4::nc_open(fname.tm1     ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1      ), add = TRUE)
                     if (any(class(nc.tm1_cosp <- try(ncdf4::nc_open(fname.tm1_cosp), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1_cosp ), add = TRUE)
                     ## if (any(class(nc.xl       <- try(ncdf4::nc_open(fname.xl      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xl       ), add = TRUE)
