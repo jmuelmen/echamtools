@@ -228,10 +228,10 @@ process.cfodd.echam <-
                     ## if (any(class(nc.rain2d   <- try(ncdf4::nc_open(fname.rain2d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain2d   ), add = TRUE)
                     if (any(class(nc.dbze     <- try(ncdf4::nc_open(fname.dbze    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.dbze     ), add = TRUE)
 
-                    lon  <- ncdf4::ncvar_get(nc.rain3d, "lon")
-                    lat  <- ncdf4::ncvar_get(nc.rain3d, "lat")
-                    lev  <- ncdf4::ncvar_get(nc.rain3d, "mlev")
-                    time <- ncdf4::ncvar_get(nc.rain3d, "time")
+                    lon  <- ncdf4::ncvar_get(nc.reffi, "lon")
+                    lat  <- ncdf4::ncvar_get(nc.reffi, "lat")
+                    lev  <- ncdf4::ncvar_get(nc.reffi, "mlev")
+                    time <- ncdf4::ncvar_get(nc.reffi, "time")
                     
                     df <- plyr::ldply(1:length(t), function(i) {
                         ## get fracout and reffi first for masking
