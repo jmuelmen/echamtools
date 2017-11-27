@@ -224,7 +224,7 @@ process.cfodd.echam <-
                     if (any(class(nc.tm1_cosp <- try(ncdf4::nc_open(fname.tm1_cosp), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.tm1_cosp ), add = TRUE)
                     ## if (any(class(nc.xl       <- try(ncdf4::nc_open(fname.xl      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xl       ), add = TRUE)
                     ## if (any(class(nc.xi       <- try(ncdf4::nc_open(fname.xi      ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.xi       ), add = TRUE)
-                    ## if (any(class(nc.rain3d   <- try(ncdf4::nc_open(fname.rain3d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain3d   ), add = TRUE)
+                    if (any(class(nc.rain3d   <- try(ncdf4::nc_open(fname.rain3d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain3d   ), add = TRUE)
                     ## if (any(class(nc.rain2d   <- try(ncdf4::nc_open(fname.rain2d  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.rain2d   ), add = TRUE)
                     if (any(class(nc.dbze     <- try(ncdf4::nc_open(fname.dbze    ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.dbze     ), add = TRUE)
 
@@ -243,6 +243,10 @@ process.cfodd.echam <-
                         ## compute layers based on fracout or on aclc > 0?
                         layer <- apply(fracout, 1:2, label.vertical.features) %>% aperm(c(2,3,1))
 
+                        ## try to get pre-precip effective radius (which we did not archive for all runs)
+                        reffl.pre <- try(ncdf4::ncvar_get(nc.rain3d, "reffl_pre_na", start = c(1,1,1,i), count = c(-1,-1,-1,1)),
+                                         silent = TRUE) 
+                        
                         df <- expand.grid(lon = as.vector(lon),
                                           lat = as.vector(lat),
                                           lev = as.vector(lev)) %>%
@@ -255,12 +259,20 @@ process.cfodd.echam <-
                                           dbze     = as.vector(ncdf4::ncvar_get(nc.dbze    , "dbze94_001"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           reffl    = as.vector(ncdf4::ncvar_get(nc.reffl   , "reffl"     , start = c(1,1,1,i), count = c(-1,-1,-1,1))),
                                           reffi    = as.vector(reffi),
-                                          fracout  = as.vector(fracout)) %>%
+                                          fracout  = as.vector(fracout))
+
+                        if (!any(class(reffl.pre) == "try-error")) {
+                            df %<>%
+                                dplyr::mutate(reffl.pre     = as.vector(reffl.pre))
+                        }
+
+                        df %>%
                             dplyr::filter(as.vector(mask)) %>%
                             dplyr::group_by(lon, lat) %>%
                             dplyr::filter(layer == max(layer)) %>%
                             dplyr::mutate(tautot = cumsum(tau)) %>%
-                            dplyr::mutate(refftop = reffl[1]) %>%  ## check this
+                            dplyr::mutate(refftop = reffl[1],
+                                          refftop.pre = reffl.pre[1]) %>%  ## check this with Kenta
                             dplyr::ungroup() %>%
                             dplyr::mutate(time = time[i])
                     }, .parallel = FALSE, .progress = "none")
