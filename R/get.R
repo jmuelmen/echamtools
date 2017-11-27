@@ -65,6 +65,36 @@ get.cosp.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
 }
 
 #' @export
+get.cfodd.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
+                            ccaulocs = NA,
+                            creth = NA,
+                            cautalpha = NA,
+                            cautbeta = NA,
+                            amip = FALSE,
+                            pi = FALSE,
+                            path = "/home/jmuelmen/wcrain/echam-ham") {
+    plyr::ddply(expand.grid(ccraut = ccrauts,
+                            ccauloc = ccaulocs,
+                            creth = creth,
+                            cautalpha = cautalpha,
+                            cautbeta = cautbeta),
+                ~ ccraut + ccauloc + creth + cautalpha + cautbeta,
+                function(df)
+                    with(df, {
+                        experiment <- expname(ccraut, ccauloc, creth,
+                                              cautalpha, cautbeta, amip, pi)
+                        readRDS(sprintf("%s/cfodd-%s.rds", path, experiment)) %>%
+                            ## filter_whole_years(exact = TRUE) %>%
+                            dplyr::mutate(ccraut = ccraut,
+                                          ccauloc = ccauloc,
+                                          creth = creth,
+                                          cautalpha = cautalpha,
+                                          cautbeta = cautbeta,
+                                          pi_pd = ifelse(pi, "PI", "PD"))
+                    }))
+}
+
+#' @export
 get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                           ccaulocs = NA,
                           creth = NA,
