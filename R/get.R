@@ -65,6 +65,17 @@ get.cosp.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
 }
 
 #' @export
+get.cosp.echam.beheng <- function(lcover = FALSE,
+                                  pi = FALSE,
+                                  path = "/home/jmuelmen/wcrain/echam-ham") {
+    experiment <- sprintf("rain_beheng_%s", ifelse(lcover, "lcover", "default"))
+    readRDS(sprintf("%s/cosp-%s.rds", path, experiment)) %>%
+        filter_whole_years(exact = TRUE) %>%
+        dplyr::mutate(pi_pd = ifelse(pi, "PI", "PD"),
+                      lcover = lcover)
+}
+
+#' @export
 get.cfodd.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                             ccaulocs = NA,
                             creth = NA,
