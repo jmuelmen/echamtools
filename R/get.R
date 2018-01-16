@@ -30,7 +30,7 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                                               cautalpha, cautbeta, amip, pi)
                         readRDS(sprintf("%s/pr-hist-%s.rds", path, experiment)) %>%
                             filter_whole_years(exact = FALSE) %>%
-                            mutate(pi_pd = ifelse(pi, "PI", "PD"))
+                            dplyr::mutate(pi_pd = ifelse(pi, "PI", "PD"))
                     }))
 }
 
