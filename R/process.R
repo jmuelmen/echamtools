@@ -416,3 +416,37 @@ process.rad.echam <-
             }, .progress = "none", .parallel = FALSE) -> df
         saveRDS(df, sprintf("%srad-%s.rds", out.prefix, experiment))
     }
+
+#' @export
+process.forcing.echam <-
+    function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             flux = TRUE,
+             subsample = NULL) { ## monthly data, so subsampling is ignored
+        doParallel::registerDoParallel(cores = ncores)
+        expand.grid(year = years, month = 1:12) %>%
+            plyr::ddply(~ year + month, function(x) {
+                gc()
+                with(x, {
+                    fname <- sprintf("%s/%s/%s_%d%02d.01_forcing.nc",
+                                     datadir, experiment, experiment, year, month)
+                    nc <- try(ncdf4::nc_open(fname), silent = TRUE)
+                    if (class(nc) == "try-error")
+                        return(NULL)
+                    t <- ncdf4::ncvar_get(nc, "time")
+                    lon <- ncdf4::ncvar_get(nc, "lon")
+                    lat <- ncdf4::ncvar_get(nc, "lat")
+                    xlvi <- ncdf4::ncvar_get(nc, "XLVI")
+                    fsw_diff <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
+                    ncdf4::nc_close(nc)
+                    df <- expand.grid(lon = as.vector(lon),
+                                      lat = as.vector(lat),
+                                      time = as.vector(t)) %>%
+                        cbind(xlvi = as.vector(xlvi),
+                              fsw_diff = as.vector(fsw_diff))
+                })
+            }, .progress = "none", .parallel = FALSE) -> df
+        saveRDS(df, sprintf("%sforcing-%s.rds", out.prefix, experiment))
+    }
