@@ -145,6 +145,42 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
 }
 
 #' @export
+get.forcing.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
+                              ccaulocs = NA,
+                              creth = NA,
+                              cautalpha = NA,
+                              cautbeta = NA,
+                              amip = FALSE,
+                              pi = FALSE,
+                              nudged = FALSE,
+                              path = "/home/jmuelmen/wcrain/echam-ham") {
+    plyr::ddply(expand.grid(ccraut = ccrauts,
+                            ccauloc = ccaulocs,
+                            creth = creth,
+                            cautalpha = cautalpha,
+                            cautbeta = cautbeta),
+                ~ ccraut + ccauloc + creth + cautalpha + cautbeta,
+                function(df)
+                    with(df, {
+                        experiment <- expname(ccraut, ccauloc, creth,
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                        df <- try(readRDS(sprintf("%s/forcing-%s.rds", path, experiment)))
+                        if (any(class(df) == "try-error"))
+                            experiment <- expname(ccraut, ccauloc, creth,
+                                                  cautalpha, cautbeta, amip, pi, nocosp = TRUE, nudged)
+                            df <- try(readRDS(sprintf("%s/forcing-%s.rds", path, experiment)))
+                        df %>%
+                            filter_whole_years() %>%
+                            dplyr::mutate(ccraut = ccraut,
+                                  ccauloc = ccauloc,
+                                  creth = creth,
+                                  cautalpha = cautalpha,
+                                  cautbeta = cautbeta,
+                                  pi_pd = ifelse(pi, "PI", "PD"))
+                    }))
+}
+
+#' @export
 get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                            ccaulocs = NA,
                            creth = NA,
