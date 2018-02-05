@@ -420,33 +420,163 @@ process.rad.echam <-
 #' @export
 process.forcing.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
-             experiment = "amip-rain-15", out.prefix = "",
+             exp_pd = "rain_4_1_-1_no-cosp_nudged", exp_pi = "rain_4_1_-1_pi_no-cosp_nudged",
+             out.prefix = "",
              years = 1979:1983,
-             ncores = 12,
+             ncores = 24,
              flux = TRUE,
              subsample = NULL) { ## monthly data, so subsampling is ignored
         doParallel::registerDoParallel(cores = ncores)
         expand.grid(year = years, month = 1:12) %>%
             plyr::ddply(~ year + month, function(x) {
                 gc()
-                with(x, {
-                    fname <- sprintf("%s/%s/%s_%d%02d.01_forcing.nc",
-                                     datadir, experiment, experiment, year, month)
-                    nc <- try(ncdf4::nc_open(fname), silent = TRUE)
-                    if (class(nc) == "try-error")
-                        return(NULL)
-                    t <- ncdf4::ncvar_get(nc, "time")
-                    lon <- ncdf4::ncvar_get(nc, "lon")
-                    lat <- ncdf4::ncvar_get(nc, "lat")
-                    xlvi <- ncdf4::ncvar_get(nc, "XLVI")
-                    fsw_diff <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
-                    ncdf4::nc_close(nc)
-                    df <- expand.grid(lon = as.vector(lon),
-                                      lat = as.vector(lat),
-                                      time = as.vector(t)) %>%
-                        cbind(xlvi = as.vector(xlvi),
-                              fsw_diff = as.vector(fsw_diff))
-                })
-            }, .progress = "none", .parallel = FALSE) -> df
-        saveRDS(df, sprintf("%sforcing-%s.rds", out.prefix, experiment))
+                plyr::ddply(cbind(x, pi_pd = c("PI", "PD"), exp = c(exp_pi, exp_pd)),
+                            ~ pi_pd,
+                            function(x) {
+                                with(x, {
+                                    fname <- sprintf("%s/%s/%s_%d%02d.01_forcing.nc",
+                                                     datadir, exp, exp, year, month)
+                                    nc <- try(ncdf4::nc_open(fname), silent = TRUE)
+                                    if (class(nc) == "try-error")
+                                        return(NULL)
+                                    t <- ncdf4::ncvar_get(nc, "time")
+                                    lon <- ncdf4::ncvar_get(nc, "lon")
+                                    lat <- ncdf4::ncvar_get(nc, "lat")
+                                    xlvi <- ncdf4::ncvar_get(nc, "XLVI")
+                                    fsw_diff <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
+                                    fsw_total_top_unpert <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_UNPERT")
+                                    flw_total_top_unpert <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_UNPERT")
+                                    fsw_total_top_lwp    <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
+                                    flw_total_top_lwp    <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_LWP")
+                                    fsw_total_top_cdnc   <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_CDNC")
+                                    flw_total_top_cdnc   <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_CDNC")
+                                    xlvi       <- ncdf4::ncvar_get(nc, "XLVI")
+                                    cdnc       <- ncdf4::ncvar_get(nc, "CDNC")
+                                    cldfra     <- ncdf4::ncvar_get(nc, "CLDFRA")
+                                    cldfra_liq <- ncdf4::ncvar_get(nc, "CLDFRA_LIQ")
+                                    ncdf4::nc_close(nc)
+                                    ## finite difference approximation to logarithmic derivatives
+                                    dlog.fsw.dlog.lwp <-
+                                        2 * (fsw_total_top_lwp - fsw_total_top_unpert) /
+                                        (fsw_total_top_lwp + fsw_total_top_unpert) /
+                                        (0.1 / 1.05)
+                                    dlog.flw.dlog.lwp <-
+                                        2 * (flw_total_top_lwp - flw_total_top_unpert) /
+                                        (flw_total_top_lwp + flw_total_top_unpert) /
+                                        (0.1 / 1.05)
+                                    dlog.fsw.dlog.cdnc <-
+                                        2 * (fsw_total_top_cdnc - fsw_total_top_unpert) /
+                                        (fsw_total_top_cdnc + fsw_total_top_unpert) /
+                                        (0.1 / 1.05)
+                                    dlog.flw.dlog.cdnc <-
+                                        2 * (flw_total_top_cdnc - flw_total_top_unpert) /
+                                        (flw_total_top_cdnc + flw_total_top_unpert) /
+                                        (0.1 / 1.05)
+                                    expand.grid(lon = as.vector(lon),
+                                                lat = as.vector(lat),
+                                                time = as.vector(t)) %>%
+                                        dplyr::mutate(dlog.fsw.dlog.lwp  = as.vector(dlog.fsw.dlog.lwp ),
+                                                      dlog.flw.dlog.lwp  = as.vector(dlog.flw.dlog.lwp ),
+                                                      dlog.fsw.dlog.cdnc = as.vector(dlog.fsw.dlog.cdnc),
+                                                      dlog.flw.dlog.cdnc = as.vector(dlog.flw.dlog.cdnc),
+                                                      fsw_total_top_unpert = as.vector(fsw_total_top_unpert),
+                                                      flw_total_top_unpert = as.vector(flw_total_top_unpert),
+                                                      xlvi               = as.vector(xlvi              ),
+                                                      cdnc               = as.vector(cdnc              ),
+                                                      cldfra             = as.vector(cldfra            ),
+                                                      cldfra_liq         = as.vector(cldfra_liq        ))
+                                })
+                            }) -> df
+
+                ## return(df)
+
+                ## if (0) {
+                df.sens <- df %>%
+                    dplyr::select(-(xlvi : cldfra_liq)) %>%
+                    tidyr::gather(var, val, dlog.fsw.dlog.lwp : flw_total_top_unpert) %>%
+                    dplyr::group_by(lon, lat, time, var) %>%
+                    ## calculate mean between PD and PI for each combination of grouping variables
+                    dplyr::summarize(val = mean(val)) %>%
+                    tidyr::spread(var, val) %>%
+                    dplyr::ungroup() 
+    
+                df.pert <- df %>%
+                    dplyr::select(-(dlog.fsw.dlog.lwp : flw_total_top_unpert)) %>%
+                    tidyr::gather(var, val, xlvi : cldfra_liq) %>%
+                    dplyr::group_by(lon, lat, time, var) %>%
+                    tidyr::spread(pi_pd, val) %>%
+                    dplyr::summarize(dlog = 2 * (PD - PI) / (PD + PI)) %>%
+                    tidyr::spread(var, dlog) %>%
+                    dplyr::ungroup()
+
+                df2 <- dplyr::full_join(df.sens, df.pert,
+                                        by = c("lon", "lat", "time"))
+                df2 %<>%
+                    dplyr::mutate(lon = ifelse(lon <= 180, lon, lon - 360)) %>%
+                    dplyr::group_by(lon, lat) %>%
+                    ## note that any NAs in the following calculation
+                    ## indicate an error in the method
+                    dplyr::summarize(sw_lwp = mean(ifelse(dlog.fsw.dlog.lwp == 0, 0, dlog.fsw.dlog.lwp * xlvi * fsw_total_top_unpert), na.rm = FALSE),
+                                     sw_cdnc = mean(ifelse(dlog.fsw.dlog.cdnc == 0, 0, dlog.fsw.dlog.cdnc * cdnc * fsw_total_top_unpert), na.rm = FALSE),
+                                     lw_lwp = mean(ifelse(dlog.flw.dlog.lwp == 0, 0, dlog.flw.dlog.lwp * xlvi * flw_total_top_unpert), na.rm = FALSE),
+                                     lw_cdnc = mean(ifelse(dlog.flw.dlog.cdnc == 0, 0, dlog.flw.dlog.cdnc * cdnc * flw_total_top_unpert), na.rm = FALSE))
+
+                if (0) {
+                    df2 %>%
+                        tidyr::gather(pert, val, sw_lwp : lw_cdnc) %>%
+                        ggplot( aes(lon, lat, fill = val)) +
+                        geom_raster() +
+                        scale_x_geo(facet = TRUE) + scale_y_geo() +
+                        coord_fixed(xlim = c(-180, 180), ylim = c(-80, 80), expand = FALSE) +
+                        ## scale_x_continuous("", labels = NULL, breaks = NULL) +
+                        ## scale_y_continuous("", labels = NULL, breaks = NULL) +
+                        ## scale_fill_manual(values = col.frac, name = expression(f[liq])) +
+                        ## scale_fill_warmfrac() +
+                        ## scale_fill_brewer("PD$-$PI", palette = "RdBu", drop = FALSE, direction = -1) +
+                        scale_fill_distiller(#labels = tikz_sanitize,
+                            "PD$-$PI", palette = "RdYlBu"## , 
+                            ## limits = c(-1, 1) * 10
+                        ) +
+                        geom_world_polygon(highres = FALSE) +
+                        theme_bw()  +
+                        theme(legend.position = "bottom", legend.box = "horizontal") +
+                        guides(fill = guide_colorbar(direction = "horizontal", title.vjust = 1)) +
+                        facet_grid(pert ~ month)
+
+                    df2 %>%
+                        tidyr::gather(pert, val, sw_lwp : lw_cdnc) %>%
+                        group_by(lon, lat, pert) %>%
+                        summarize(val = mean(val)) %>%
+                        ggplot( aes(lon, lat, fill = val)) +
+                        geom_raster() +
+                        scale_x_geo(facet = TRUE) + scale_y_geo() +
+                        coord_fixed(xlim = c(-180, 180), ylim = c(-80, 80), expand = FALSE) +
+                        ## scale_x_continuous("", labels = NULL, breaks = NULL) +
+                        ## scale_y_continuous("", labels = NULL, breaks = NULL) +
+                        ## scale_fill_manual(values = col.frac, name = expression(f[liq])) +
+                        ## scale_fill_warmfrac() +
+                        ## scale_fill_brewer("PD$-$PI", palette = "RdBu", drop = FALSE, direction = -1) +
+                        scale_fill_distiller(#labels = tikz_sanitize,
+                            "PD$-$PI", palette = "RdYlBu", 
+                            limits = c(-1, 1) * 10
+                        ) +
+                        geom_world_polygon(highres = FALSE) +
+                        theme_bw()  +
+                        theme(legend.position = "bottom", legend.box = "horizontal") +
+                        guides(fill = guide_colorbar(direction = "horizontal", title.vjust = 1)) +
+                        facet_wrap(~ pert)
+
+                    df2 %>%
+                        tidyr::gather(pert, val, sw_lwp : lw_cdnc) %>%
+                        mutate(cos.lat = cos(lat * pi / 180)) %>%
+                        group_by(pert) %>%
+                        summarize(flux = sum(val * cos.lat, na.rm = FALSE) / sum(cos.lat))
+
+                }
+
+                try(saveRDS(df2, sprintf("%sforcing-%s-%d-%d.rds", out.prefix, exp_pd, x$year, x$month)))
+                
+                df2
+            }, .progress = "none", .parallel = TRUE) -> df
+        saveRDS(df, sprintf("%sforcing-%s.rds", out.prefix, exp_pd))
     }
