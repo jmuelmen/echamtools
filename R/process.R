@@ -517,12 +517,17 @@ process.forcing.echam <-
                 df2 %<>%
                     dplyr::mutate(lon = ifelse(lon <= 180, lon, lon - 360)) %>%
                     dplyr::group_by(lon, lat) %>%
-                    ## note that any NAs in the following calculation
-                    ## indicate an error in the method
-                    dplyr::summarize(sw_lwp = mean(ifelse(dlog.fsw.dlog.lwp == 0, 0, dlog.fsw.dlog.lwp * xlvi * fsw_total_top_unpert), na.rm = FALSE),
-                                     sw_cdnc = mean(ifelse(dlog.fsw.dlog.cdnc == 0, 0, dlog.fsw.dlog.cdnc * cdnc * fsw_total_top_unpert), na.rm = FALSE),
-                                     lw_lwp = mean(ifelse(dlog.flw.dlog.lwp == 0, 0, dlog.flw.dlog.lwp * xlvi * flw_total_top_unpert), na.rm = FALSE),
-                                     lw_cdnc = mean(ifelse(dlog.flw.dlog.cdnc == 0, 0, dlog.flw.dlog.cdnc * cdnc * flw_total_top_unpert), na.rm = FALSE))
+                    dplyr::summarize(
+                               ## note that any NAs in the following calculation
+                               ## indicate an error in the method
+                               sw_lwp = mean(ifelse(dlog.fsw.dlog.lwp == 0, 0, dlog.fsw.dlog.lwp * xlvi * fsw_total_top_unpert), na.rm = FALSE),
+                               sw_cdnc = mean(ifelse(dlog.fsw.dlog.cdnc == 0, 0, dlog.fsw.dlog.cdnc * cdnc * fsw_total_top_unpert), na.rm = FALSE),
+                               lw_lwp = mean(ifelse(dlog.flw.dlog.lwp == 0, 0, dlog.flw.dlog.lwp * xlvi * flw_total_top_unpert), na.rm = FALSE),
+                               lw_cdnc = mean(ifelse(dlog.flw.dlog.cdnc == 0, 0, dlog.flw.dlog.cdnc * cdnc * flw_total_top_unpert), na.rm = FALSE),
+                               sw_lwp_mean = mean(dlog.fsw.dlog.lwp) * mean(xlvi),
+                               sw_cdnc_mean = mean(dlog.fsw.dlog.cdnc) * mean(cdnc),
+                               lw_lwp_mean = mean(dlog.flw.dlog.lwp) * mean(xlvi),
+                               lw_cdnc_mean = mean(dlog.flw.dlog.cdnc) * mean(cdnc))
 
                 if (0) {
                     df2 %>%
