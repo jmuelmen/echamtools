@@ -511,6 +511,9 @@ process.forcing.echam <-
 
                 df2 <- dplyr::full_join(df.sens, df.pert,
                                         by = c("lon", "lat", "time"))
+
+                try(saveRDS(df2, sprintf("%sforcing-%s-%d-%d.rds", out.prefix, exp_pd, x$year, x$month)))
+
                 df2 %<>%
                     dplyr::mutate(lon = ifelse(lon <= 180, lon, lon - 360)) %>%
                     dplyr::group_by(lon, lat) %>%
@@ -574,8 +577,6 @@ process.forcing.echam <-
 
                 }
 
-                try(saveRDS(df2, sprintf("%sforcing-%s-%d-%d.rds", out.prefix, exp_pd, x$year, x$month)))
-                
                 df2
             }, .progress = "none", .parallel = TRUE) -> df
         saveRDS(df, sprintf("%sforcing-%s.rds", out.prefix, exp_pd))
