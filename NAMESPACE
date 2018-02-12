@@ -2,6 +2,7 @@
 
 export(cfodd.plot)
 export(cosp.process)
+export(generate_lsm)
 export(get.cfodd.echam)
 export(get.cosp.echam)
 export(get.cosp.echam.beheng)
