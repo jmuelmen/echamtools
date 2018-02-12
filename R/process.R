@@ -430,90 +430,95 @@ process.forcing.echam <-
         expand.grid(year = years, month = 1:12) %>%
             plyr::ddply(~ year + month, function(x) {
                 gc()
-                plyr::ddply(cbind(x, pi_pd = c("PI", "PD"), exp = c(exp_pi, exp_pd)),
-                            ~ pi_pd,
-                            function(x) {
-                                with(x, {
-                                    fname <- sprintf("%s/%s/%s_%d%02d.01_forcing.nc",
-                                                     datadir, exp, exp, year, month)
-                                    nc <- try(ncdf4::nc_open(fname), silent = TRUE)
-                                    if (class(nc) == "try-error")
-                                        return(NULL)
-                                    t <- ncdf4::ncvar_get(nc, "time")
-                                    lon <- ncdf4::ncvar_get(nc, "lon")
-                                    lat <- ncdf4::ncvar_get(nc, "lat")
-                                    xlvi <- ncdf4::ncvar_get(nc, "XLVI")
-                                    fsw_diff <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
-                                    fsw_total_top_unpert <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_UNPERT")
-                                    flw_total_top_unpert <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_UNPERT")
-                                    fsw_total_top_lwp    <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
-                                    flw_total_top_lwp    <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_LWP")
-                                    fsw_total_top_cdnc   <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_CDNC")
-                                    flw_total_top_cdnc   <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_CDNC")
-                                    xlvi       <- ncdf4::ncvar_get(nc, "XLVI")
-                                    cdnc       <- ncdf4::ncvar_get(nc, "CDNC")
-                                    cldfra     <- ncdf4::ncvar_get(nc, "CLDFRA")
-                                    cldfra_liq <- ncdf4::ncvar_get(nc, "CLDFRA_LIQ")
-                                    ncdf4::nc_close(nc)
-                                    ## finite difference approximation to logarithmic derivatives
-                                    dlog.fsw.dlog.lwp <-
-                                        2 * (fsw_total_top_lwp - fsw_total_top_unpert) /
-                                        (fsw_total_top_lwp + fsw_total_top_unpert) /
-                                        (0.1 / 1.05)
-                                    dlog.flw.dlog.lwp <-
-                                        2 * (flw_total_top_lwp - flw_total_top_unpert) /
-                                        (flw_total_top_lwp + flw_total_top_unpert) /
-                                        (0.1 / 1.05)
-                                    dlog.fsw.dlog.cdnc <-
-                                        2 * (fsw_total_top_cdnc - fsw_total_top_unpert) /
-                                        (fsw_total_top_cdnc + fsw_total_top_unpert) /
-                                        (0.1 / 1.05)
-                                    dlog.flw.dlog.cdnc <-
-                                        2 * (flw_total_top_cdnc - flw_total_top_unpert) /
-                                        (flw_total_top_cdnc + flw_total_top_unpert) /
-                                        (0.1 / 1.05)
-                                    expand.grid(lon = as.vector(lon),
-                                                lat = as.vector(lat),
-                                                time = as.vector(t)) %>%
-                                        dplyr::mutate(dlog.fsw.dlog.lwp  = as.vector(dlog.fsw.dlog.lwp ),
-                                                      dlog.flw.dlog.lwp  = as.vector(dlog.flw.dlog.lwp ),
-                                                      dlog.fsw.dlog.cdnc = as.vector(dlog.fsw.dlog.cdnc),
-                                                      dlog.flw.dlog.cdnc = as.vector(dlog.flw.dlog.cdnc),
-                                                      fsw_total_top_unpert = as.vector(fsw_total_top_unpert),
-                                                      flw_total_top_unpert = as.vector(flw_total_top_unpert),
-                                                      xlvi               = as.vector(xlvi              ),
-                                                      cdnc               = as.vector(cdnc              ),
-                                                      cldfra             = as.vector(cldfra            ),
-                                                      cldfra_liq         = as.vector(cldfra_liq        ))
-                                })
-                            }) -> df
+                ## first try to find cached data frame
+                fname.cache <- sprintf("%sforcing-%s-%d-%d.rds", out.prefix, exp_pd, x$year, x$month)
+                df2 <- try(readRDS(fname.cache))
+                ## if it's not cached, generate it
+                if (class(df) == "try-error") {
+                    plyr::ddply(cbind(x, pi_pd = c("PI", "PD"), exp = c(exp_pi, exp_pd)),
+                                ~ pi_pd,
+                                function(x) {
+                                    with(x, {
+                                        fname <- sprintf("%s/%s/%s_%d%02d.01_forcing.nc",
+                                                         datadir, exp, exp, year, month)
+                                        nc <- try(ncdf4::nc_open(fname), silent = TRUE)
+                                        if (class(nc) == "try-error")
+                                            return(NULL)
+                                        t <- ncdf4::ncvar_get(nc, "time")
+                                        lon <- ncdf4::ncvar_get(nc, "lon")
+                                        lat <- ncdf4::ncvar_get(nc, "lat")
+                                        xlvi <- ncdf4::ncvar_get(nc, "XLVI")
+                                        fsw_diff <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
+                                        fsw_total_top_unpert <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_UNPERT")
+                                        flw_total_top_unpert <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_UNPERT")
+                                        fsw_total_top_lwp    <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_LWP")
+                                        flw_total_top_lwp    <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_LWP")
+                                        fsw_total_top_cdnc   <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_CDNC")
+                                        flw_total_top_cdnc   <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_CDNC")
+                                        ## fsw_total_top_cldfra   <- ncdf4::ncvar_get(nc, "FSW_TOTAL_TOP_CLDFRA")
+                                        ## flw_total_top_cldfra   <- ncdf4::ncvar_get(nc, "FLW_TOTAL_TOP_CLDFRA")
+                                        xlvi       <- ncdf4::ncvar_get(nc, "XLVI")
+                                        cdnc       <- ncdf4::ncvar_get(nc, "CDNC")
+                                        cldfra     <- ncdf4::ncvar_get(nc, "CLDFRA")
+                                        cldfra_liq <- ncdf4::ncvar_get(nc, "CLDFRA_LIQ")
+                                        ncdf4::nc_close(nc)
+                                        ## finite difference approximation to logarithmic derivatives
+                                        dlog.fsw.dlog.lwp <-
+                                            2 * (fsw_total_top_lwp - fsw_total_top_unpert) /
+                                            (fsw_total_top_lwp + fsw_total_top_unpert) /
+                                            (0.1 / 1.05)
+                                        dlog.flw.dlog.lwp <-
+                                            2 * (flw_total_top_lwp - flw_total_top_unpert) /
+                                            (flw_total_top_lwp + flw_total_top_unpert) /
+                                            (0.1 / 1.05)
+                                        dlog.fsw.dlog.cdnc <-
+                                            2 * (fsw_total_top_cdnc - fsw_total_top_unpert) /
+                                            (fsw_total_top_cdnc + fsw_total_top_unpert) /
+                                            (0.1 / 1.05)
+                                        dlog.flw.dlog.cdnc <-
+                                            2 * (flw_total_top_cdnc - flw_total_top_unpert) /
+                                            (flw_total_top_cdnc + flw_total_top_unpert) /
+                                            (0.1 / 1.05)
+                                        expand.grid(lon = as.vector(lon),
+                                                    lat = as.vector(lat),
+                                                    time = as.vector(t)) %>%
+                                            dplyr::mutate(dlog.fsw.dlog.lwp  = as.vector(dlog.fsw.dlog.lwp ),
+                                                          dlog.flw.dlog.lwp  = as.vector(dlog.flw.dlog.lwp ),
+                                                          dlog.fsw.dlog.cdnc = as.vector(dlog.fsw.dlog.cdnc),
+                                                          dlog.flw.dlog.cdnc = as.vector(dlog.flw.dlog.cdnc),
+                                                          fsw_total_top_unpert = as.vector(fsw_total_top_unpert),
+                                                          flw_total_top_unpert = as.vector(flw_total_top_unpert),
+                                                          xlvi               = as.vector(xlvi              ),
+                                                          cdnc               = as.vector(cdnc              ),
+                                                          cldfra             = as.vector(cldfra            ),
+                                                          cldfra_liq         = as.vector(cldfra_liq        ))
+                                    })
+                                }) -> df
+                    ## if (0) {
+                    df.sens <- df %>%
+                        dplyr::select(-(xlvi : cldfra_liq)) %>%
+                        tidyr::gather(var, val, dlog.fsw.dlog.lwp : flw_total_top_unpert) %>%
+                        dplyr::group_by(lon, lat, time, var) %>%
+                        ## calculate mean between PD and PI for each combination of grouping variables
+                        dplyr::summarize(val = mean(val)) %>%
+                        tidyr::spread(var, val) %>%
+                        dplyr::ungroup() 
+                    
+                    df.pert <- df %>%
+                        dplyr::select(-(dlog.fsw.dlog.lwp : flw_total_top_unpert)) %>%
+                        tidyr::gather(var, val, xlvi : cldfra_liq) %>%
+                        dplyr::group_by(lon, lat, time, var) %>%
+                        tidyr::spread(pi_pd, val) %>%
+                        dplyr::summarize(dlog = 2 * (PD - PI) / (PD + PI)) %>%
+                        tidyr::spread(var, dlog) %>%
+                        dplyr::ungroup()
 
-                ## return(df)
+                    df2 <- dplyr::full_join(df.sens, df.pert,
+                                            by = c("lon", "lat", "time"))
 
-                ## if (0) {
-                df.sens <- df %>%
-                    dplyr::select(-(xlvi : cldfra_liq)) %>%
-                    tidyr::gather(var, val, dlog.fsw.dlog.lwp : flw_total_top_unpert) %>%
-                    dplyr::group_by(lon, lat, time, var) %>%
-                    ## calculate mean between PD and PI for each combination of grouping variables
-                    dplyr::summarize(val = mean(val)) %>%
-                    tidyr::spread(var, val) %>%
-                    dplyr::ungroup() 
-    
-                df.pert <- df %>%
-                    dplyr::select(-(dlog.fsw.dlog.lwp : flw_total_top_unpert)) %>%
-                    tidyr::gather(var, val, xlvi : cldfra_liq) %>%
-                    dplyr::group_by(lon, lat, time, var) %>%
-                    tidyr::spread(pi_pd, val) %>%
-                    dplyr::summarize(dlog = 2 * (PD - PI) / (PD + PI)) %>%
-                    tidyr::spread(var, dlog) %>%
-                    dplyr::ungroup()
-
-                df2 <- dplyr::full_join(df.sens, df.pert,
-                                        by = c("lon", "lat", "time"))
-
-                try(saveRDS(df2, sprintf("%sforcing-%s-%d-%d.rds", out.prefix, exp_pd, x$year, x$month)))
-
+                    try(saveRDS(df2, fname.cache))
+                }
+                
                 df2 %<>%
                     dplyr::mutate(lon = ifelse(lon <= 180, lon, lon - 360)) %>%
                     dplyr::group_by(lon, lat) %>%
