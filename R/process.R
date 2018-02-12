@@ -520,14 +520,14 @@ process.forcing.echam <-
                     dplyr::summarize(
                                ## note that any NAs in the following calculation
                                ## indicate an error in the method
-                               sw_lwp = mean(ifelse(dlog.fsw.dlog.lwp == 0, 0, dlog.fsw.dlog.lwp * xlvi * fsw_total_top_unpert), na.rm = FALSE),
+                               sw_lwp =  mean(ifelse(dlog.fsw.dlog.lwp == 0, 0,  dlog.fsw.dlog.lwp * xlvi * fsw_total_top_unpert), na.rm = FALSE),
                                sw_cdnc = mean(ifelse(dlog.fsw.dlog.cdnc == 0, 0, dlog.fsw.dlog.cdnc * cdnc * fsw_total_top_unpert), na.rm = FALSE),
-                               lw_lwp = mean(ifelse(dlog.flw.dlog.lwp == 0, 0, dlog.flw.dlog.lwp * xlvi * flw_total_top_unpert), na.rm = FALSE),
+                               lw_lwp =  mean(ifelse(dlog.flw.dlog.lwp == 0, 0,  dlog.flw.dlog.lwp * xlvi * flw_total_top_unpert), na.rm = FALSE),
                                lw_cdnc = mean(ifelse(dlog.flw.dlog.cdnc == 0, 0, dlog.flw.dlog.cdnc * cdnc * flw_total_top_unpert), na.rm = FALSE),
-                               sw_lwp_mean = mean(dlog.fsw.dlog.lwp) * mean(xlvi),
-                               sw_cdnc_mean = mean(dlog.fsw.dlog.cdnc) * mean(cdnc),
-                               lw_lwp_mean = mean(dlog.flw.dlog.lwp) * mean(xlvi),
-                               lw_cdnc_mean = mean(dlog.flw.dlog.cdnc) * mean(cdnc))
+                               sw_lwp_mean =  mean(dlog.fsw.dlog.lwp  * fsw_total_top_unpert) * mean(ifelse(dlog.fsw.dlog.lwp == 0, 0,  xlvi)),
+                               sw_cdnc_mean = mean(dlog.fsw.dlog.cdnc * fsw_total_top_unpert) * mean(ifelse(dlog.fsw.dlog.cdnc == 0, 0, cdnc)),
+                               lw_lwp_mean =  mean(dlog.flw.dlog.lwp  * flw_total_top_unpert) * mean(ifelse(dlog.flw.dlog.lwp == 0, 0,  xlvi)),
+                               lw_cdnc_mean = mean(dlog.flw.dlog.cdnc * flw_total_top_unpert) * mean(ifelse(dlog.flw.dlog.cdnc == 0, 0, cdnc)))
 
                 if (0) {
                     df2 %>%
