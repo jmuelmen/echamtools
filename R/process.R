@@ -434,7 +434,7 @@ process.forcing.echam <-
                 fname.cache <- sprintf("%sforcing-%s-%d-%d.rds", out.prefix, exp_pd, x$year, x$month)
                 df2 <- try(readRDS(fname.cache))
                 ## if it's not cached, generate it
-                if (class(df) == "try-error") {
+                if (class(df2) == "try-error") {
                     plyr::ddply(cbind(x, pi_pd = c("PI", "PD"), exp = c(exp_pi, exp_pd)),
                                 ~ pi_pd,
                                 function(x) {
