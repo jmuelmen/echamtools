@@ -116,7 +116,7 @@ process.precip.cosp.profile.echam <-
                     fname.rain2d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain2d"       )
                     fname.dbze     <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_001"       )
 
-                    out.name <- gsub(".nc", "-cosp.rds", fname)
+                    out.name <- gsub("cosp_001.nc", "-cosp.rds", fname.dbze)
 
                     ## if (any(class(nc.lssnow   <- try(ncdf4::nc_open(fname.lssnow  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lssnow   ), add = TRUE)
                     ## if (any(class(nc.lsrain   <- try(ncdf4::nc_open(fname.lsrain  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lsrain   ), add = TRUE)
