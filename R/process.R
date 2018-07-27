@@ -93,7 +93,7 @@ process.precip.cosp.profile.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
              experiment = "amip-rain-15", out.prefix = "",
              years = 1979:1983,
-             ncores = 12,
+             ncores = 36,
              flux = TRUE,
              subsample = NULL) {
         doParallel::registerDoParallel(cores = ncores)
@@ -115,6 +115,8 @@ process.precip.cosp.profile.echam <-
                     fname.rain3d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain3d"       )
                     fname.rain2d   <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "rain2d"       )
                     fname.dbze     <- sprintf("%s/%s/%s_%d%02d.01_%s.nc", datadir, experiment, experiment, year, month, "cosp_001"       )
+
+                    out.name <- gsub(".nc", "-cosp.rds", fname)
 
                     ## if (any(class(nc.lssnow   <- try(ncdf4::nc_open(fname.lssnow  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lssnow   ), add = TRUE)
                     ## if (any(class(nc.lsrain   <- try(ncdf4::nc_open(fname.lsrain  ), silent = TRUE)) == "try-error")) return(NULL); on.exit(ncdf4::nc_close(nc.lsrain   ), add = TRUE)
@@ -177,9 +179,11 @@ process.precip.cosp.profile.echam <-
                                                                 NA)) %>%
                             dplyr::ungroup() %>%
                             dplyr::mutate(time = time[i])
-                        print(dim(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))))
+                        ## print(dim(ncdf4::ncvar_get(nc.rain2d  , "aprl_na", start = c(1,1,i), count = c(-1,-1,1))))
                         df
                     }, .parallel = FALSE, .progress = "none")
+                    saveRDS(df, out.name)
+                    df
                 })
             }, .parallel = TRUE) -> df
         
