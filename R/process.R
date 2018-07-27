@@ -135,7 +135,7 @@ process.precip.cosp.profile.echam <-
                     lev  <- ncdf4::ncvar_get(nc.rain3d, "mlev")
                     time <- ncdf4::ncvar_get(nc.rain3d, "time")
 
-                    df <- plyr::ldply(1:length(t), function(i) {
+                    df <- plyr::ldply(1:length(time), function(i) {
                         ## get aclc first for further processing
                         aclc  <- ncdf4::ncvar_get(nc.aclc  , "aclc", start = c(1,1,1,i), count = c(-1,-1,-1,1))
                         layer <- apply(aclc > 0, 1:2, label.vertical.features) %>% aperm(c(2,3,1))
@@ -233,7 +233,7 @@ process.cfodd.echam <-
                     lev  <- ncdf4::ncvar_get(nc.reffi, "mlev")
                     time <- ncdf4::ncvar_get(nc.reffi, "time")
                     
-                    df <- plyr::ldply(1:length(t), function(i) {
+                    df <- plyr::ldply(1:length(time), function(i) {
                         ## get fracout and reffi first for masking
                         reffi   <- ncdf4::ncvar_get(nc.reffi  , "reffi", start = c(1,1,1,i), count = c(-1,-1,-1,1))
                         fracout <- ncdf4::ncvar_get(nc.dbze   , "frac_out_001" , start = c(1,1,1,i), count = c(-1,-1,-1,1))
