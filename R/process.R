@@ -198,16 +198,16 @@ process.precip.cosp.profile.echam <-
         }
 
         df %<>%
-            group_by(lon + lat) %>%
-            summarize(n.cold.drizzle = sum(cold.drizzle, na.rm = TRUE),
-                      n.warm.drizzle = sum(!cold.drizzle, na.rm = TRUE),
-                      n.no.drizzle = sum(is.na(cold.drizzle)),
-                      n.cold.rain = sum(cold.rain, na.rm = TRUE),
-                      n.warm.rain = sum(!cold.rain, na.rm = TRUE),
-                      n.no.rain = sum(is.na(cold.rain))) %>%
-            ungroup()
+            dplyr::group_by(lon + lat) %>%
+            dplyr::summarize(n.cold.drizzle = sum(cold.drizzle, na.rm = TRUE),
+                             n.warm.drizzle = sum(!cold.drizzle, na.rm = TRUE),
+                             n.no.drizzle = sum(is.na(cold.drizzle)),
+                             n.cold.rain = sum(cold.rain, na.rm = TRUE),
+                             n.warm.rain = sum(!cold.rain, na.rm = TRUE),
+                             n.no.rain = sum(is.na(cold.rain))) %>%
+            dplyr::ungroup()
         saveRDS(df, sprintf("%scosp-counts-%s.rds", out.prefix, experiment))
-        
+        df
     }
 
 #' @export
