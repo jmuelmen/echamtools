@@ -186,7 +186,7 @@ process.precip.cosp.profile.echam <-
                         saveRDS(df, out.name)
                     }
                     df %>%
-                        select(lon, lat, time, cold.drizzle, cold.rain)
+                        dplyr::select(lon, lat, time, cold.drizzle, cold.rain)
                 })
             }, .parallel = TRUE) -> df
         
