@@ -198,7 +198,7 @@ process.precip.cosp.profile.echam <-
         }
 
         df %<>%
-            dplyr::group_by(lon + lat) %>%
+            dplyr::group_by(lon, lat) %>%
             dplyr::summarize(n.cold.drizzle = sum(cold.drizzle, na.rm = TRUE),
                              n.warm.drizzle = sum(!cold.drizzle, na.rm = TRUE),
                              n.no.drizzle = sum(is.na(cold.drizzle)),
