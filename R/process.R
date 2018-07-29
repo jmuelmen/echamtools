@@ -459,7 +459,7 @@ postprocess.rad.echam <-
              ncores = 12,
              flux = TRUE,
              subsample = NULL) { ## the vast majority of these arguments gets ignored
-        in.name <- sprintf("%rad-%s.rds", out.prefix, experiment)
+        in.name <- sprintf("%srad-%s.rds", out.prefix, experiment)
         df <- try(readRDS(in.name), silent = TRUE)
         df %<>%
             plyr::ddply(~ lon + lat, function(x) {
