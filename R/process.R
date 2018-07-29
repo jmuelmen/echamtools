@@ -468,7 +468,8 @@ postprocess.rad.echam <-
                                   cldlifliq.inst = xlvi / aprl,
                                   cldlifice.inst = xivi / aprl) %>%
                     colMeans() %>%
-                    transform(t(.))
+                    t() %>%
+                    transform()
             })
         saveRDS(df, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
     }
