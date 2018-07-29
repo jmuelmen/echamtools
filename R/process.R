@@ -452,6 +452,25 @@ process.rad.echam <-
     }
 
 #' @export
+postprocess.rad.echam <- 
+    function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
+             experiment = "amip-rain-15", out.prefix = "",
+             years = 1979:1983,
+             ncores = 12,
+             flux = TRUE,
+             subsample = NULL) { ## the vast majority of these arguments gets ignored
+        in.name <- sprintf("%rad-%s.rds", out.prefix, experiment)
+        df <- try(readRDS(in.name), silent = TRUE)
+        df %<>%
+            plyr::ddply(~ lon + lat, function(x) {
+                transform(t(colMeans(x))) %>%
+                    dplyr::mutate(inst_lifetime = (xlvi + xivi) / aprl)
+            })
+        saveRDS(df, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
+    }
+
+
+#' @export
 process.forcing.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
              exp_pd = "rain_4_1_-1_no-cosp_nudged", exp_pi = "rain_4_1_-1_pi_no-cosp_nudged",
