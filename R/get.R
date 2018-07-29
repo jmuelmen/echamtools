@@ -18,6 +18,7 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                          amip = FALSE,
                          pi = FALSE,
                          nudged = FALSE,
+                         daily = FALSE,
                          path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -28,7 +29,7 @@ get.pr.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60),
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         readRDS(sprintf("%s/pr-hist-%s.rds", path, experiment)) %>%
                             filter_whole_years(exact = FALSE) %>%
                             dplyr::mutate(pi_pd = ifelse(pi, "PI", "PD"))
@@ -44,6 +45,7 @@ get.cosp.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                          amip = FALSE,
                          pi = FALSE,
                          nudged = FALSE,
+                         daily = FALSE,
                          path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -54,7 +56,7 @@ get.cosp.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         readRDS(sprintf("%s/cosp-%s.rds", path, experiment)) %>%
                             filter_whole_years(exact = TRUE) %>%
                             dplyr::mutate(ccraut = ccraut,
@@ -75,6 +77,7 @@ get.cosp.counts.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15,
                                  amip = FALSE,
                                  pi = FALSE,
                                  nudged = FALSE,
+                                 daily = FALSE,
                                  path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -85,9 +88,8 @@ get.cosp.counts.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15,
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         readRDS(sprintf("%s/cosp-counts-%s.rds", path, experiment)) %>%
-                            filter_whole_years(exact = TRUE) %>%
                             dplyr::mutate(ccraut = ccraut,
                                           ccauloc = ccauloc,
                                           creth = creth,
@@ -117,6 +119,7 @@ get.cfodd.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 6
                             amip = FALSE,
                             pi = FALSE,
                             nudged = FALSE,
+                            daily = FALSE,
                             path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -127,7 +130,7 @@ get.cfodd.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 6
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         readRDS(sprintf("%s/cfodd-%s.rds", path, experiment)) %>%
                             ## filter_whole_years(exact = TRUE) %>%
                             dplyr::mutate(ccraut = ccraut,
@@ -148,6 +151,7 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                           amip = FALSE,
                           pi = FALSE,
                           nudged = FALSE,
+                          daily = FALSE,
                           path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -158,11 +162,11 @@ get.rad.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60)
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         df <- try(readRDS(sprintf("%s/rad-%s.rds", path, experiment)))
                         if (any(class(df) == "try-error"))
                             experiment <- expname(ccraut, ccauloc, creth,
-                                                  cautalpha, cautbeta, amip, pi, nocosp = TRUE, nudged)
+                                                  cautalpha, cautbeta, amip, pi, nocosp = TRUE, nudged, daily)
                             df <- try(readRDS(sprintf("%s/rad-%s.rds", path, experiment)))
                         df %>%
                             filter_whole_years() %>%
@@ -184,6 +188,7 @@ get.forcing.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30,
                               amip = FALSE,
                               pi = FALSE,
                               nudged = FALSE,
+                              daily = FALSE,
                               path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -194,14 +199,14 @@ get.forcing.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30,
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         df <- try(readRDS(sprintf("%s/forcing-%s.rds", path, experiment)))
                         if (any(class(df) == "try-error"))
                             experiment <- expname(ccraut, ccauloc, creth,
-                                                  cautalpha, cautbeta, amip, pi, nocosp = TRUE, nudged)
+                                                  cautalpha, cautbeta, amip, pi, nocosp = TRUE, nudged, daily)
                             df <- try(readRDS(sprintf("%s/forcing-%s.rds", path, experiment)))
                         df %>%
-                            filter_whole_years() %>%
+                            ## filter_whole_years() %>%
                             dplyr::mutate(ccraut = ccraut,
                                   ccauloc = ccauloc,
                                   creth = creth,
@@ -221,6 +226,7 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                            pi = FALSE,
                            flux = TRUE,
                            nudged = FALSE,
+                           daily = FALSE,
                            path = "/home/jmuelmen/wcrain/echam-ham") {
     plyr::ddply(expand.grid(ccraut = ccrauts,
                             ccauloc = ccaulocs,
@@ -231,7 +237,7 @@ get.mask.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15, 30, 60
                 function(df)
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
-                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged)
+                                              cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily)
                         ## print(experiment)
                         readRDS(sprintf("%s/%s.rds", path, experiment)) %>%
                             filter_whole_years() %>%
@@ -274,8 +280,8 @@ filter_whole_years <- function(df, exact = TRUE) {
 }
 
 expname <- function(ccraut, ccauloc, creth,
-                    cautalpha, cautbeta, amip, pi, nocosp, nudged) {
-    experiment <- sprintf("%s%g%s%s%s%s%s%s%s",
+                    cautalpha, cautbeta, amip, pi, nocosp, nudged, daily) {
+    experiment <- sprintf("%s%g%s%s%s%s%s%s%s%s",
                           ifelse(amip, "amip-rain-", "rain_"),
                           ccraut,
                           ifelse(is.na(ccauloc), "", sprintf("_%g", ccauloc)),
@@ -284,5 +290,6 @@ expname <- function(ccraut, ccauloc, creth,
                           ifelse(is.na(cautbeta), "", sprintf("_cautbeta_%g", cautbeta)),
                           ifelse(pi, "_pi", ""),
                           ifelse(nocosp, "_no-cosp", ""),
-                          ifelse(nudged, "_nudged", ""))
+                          ifelse(nudged, "_nudged", ""),
+                          ifelse(daily, "_daily", ""))
 }
