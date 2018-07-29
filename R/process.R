@@ -463,8 +463,12 @@ postprocess.rad.echam <-
         df <- try(readRDS(in.name), silent = TRUE)
         df %<>%
             plyr::ddply(~ lon + lat, function(x) {
-                transform(t(colMeans(x))) %>%
-                    dplyr::mutate(inst_lifetime = (xlvi + xivi) / aprl)
+                x %>%
+                    dplyr::mutate(cldlif.inst = (xlvi + xivi) / aprl,
+                                  cldlifliq.inst = xlvi / aprl,
+                                  cldlifice.inst = xivi / aprl) %>%
+                    colMeans() %>%
+                    transform(t(.))
             })
         saveRDS(df, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
     }
