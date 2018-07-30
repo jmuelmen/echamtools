@@ -475,11 +475,12 @@ postprocess.rad.echam <-
         ## saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
         ## then try a power law fit of the precip to total water path 
         df.fits <- df %>%
-            dplyr::filter(xivi + xlvi > 1e-3, aprl > 1e-7) %>%
+            dplyr::filter(xivi + xlvi > 1e-3, xlvi > 0, aprl > 1e-7) %>%
             ## mutate(phase = "any") %>%
             dplyr::mutate(xlvi.frac = xlvi / (xlvi + xivi)) %>%
             plotutils::discretize(xlvi.frac,
-                                  c(0, 0.67, 0.8, 0.88, 0.93, 0.97, 0.99, 1)) %>%
+                                  ## septiles, roughly: c(0, 0.67, 0.8, 0.88, 0.93, 0.97, 0.99, 1)) %>%
+                                  seq(-0.005, 1.005, 0.01)) %>%
             ## mutate(phase = factor(ifelse(xlvi / (xlvi + xivi) > 0.9, "liquid",
             ##                       ifelse(xlvi / (xlvi + xivi) < 0.1, "ice",
             ##                              "mixed")),
