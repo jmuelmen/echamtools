@@ -473,20 +473,20 @@ postprocess.rad.echam <-
         ##             transform()
         ##     })
         ## saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
-        ## then try a power law fit of the precip to total water path 
-        df.fits <- df %>%
-            dplyr::filter(xivi + xlvi > 1e-3, aprl > 1e-7) %>%
-            ## mutate(phase = "any") %>%
-            dplyr::mutate(xlvi.frac = cut(xlvi / (xlvi + xivi), seq(-0.05, 1.05, by = 0.1))) %>%
-            ## mutate(phase = factor(ifelse(xlvi / (xlvi + xivi) > 0.9, "liquid",
-            ##                       ifelse(xlvi / (xlvi + xivi) < 0.1, "ice",
-            ##                              "mixed")),
-            ##                       levels = c("ice", "mixed", "liquid"))) %>%
-            plyr::ddply(~ lat + lon + xlvi.frac, function(x) {
-                l <- lm(log10(aprl) ~ log10(xlvi + xivi), x)
-                data.frame(a = l$coefficients[2], b = 10^l$coefficients[1], r2 = summary(l)$adj.r.squared)
-            })
-        saveRDS(df.fits, sprintf("%srad-rain-fits-%s.rds", out.prefix, experiment))
+        ## ## then try a power law fit of the precip to total water path 
+        ## df.fits <- df %>%
+        ##     dplyr::filter(xivi + xlvi > 1e-3, aprl > 1e-7) %>%
+        ##     ## mutate(phase = "any") %>%
+        ##     dplyr::mutate(xlvi.frac = cut(xlvi / (xlvi + xivi), seq(-0.05, 1.05, by = 0.1))) %>%
+        ##     ## mutate(phase = factor(ifelse(xlvi / (xlvi + xivi) > 0.9, "liquid",
+        ##     ##                       ifelse(xlvi / (xlvi + xivi) < 0.1, "ice",
+        ##     ##                              "mixed")),
+        ##     ##                       levels = c("ice", "mixed", "liquid"))) %>%
+        ##     plyr::ddply(~ lat + lon + xlvi.frac, function(x) {
+        ##         l <- lm(log10(aprl) ~ log10(xlvi + xivi), x)
+        ##         data.frame(a = l$coefficients[2], b = 10^l$coefficients[1], r2 = summary(l)$adj.r.squared)
+        ##     })
+        ## saveRDS(df.fits, sprintf("%srad-rain-fits-%s.rds", out.prefix, experiment))
         ## finally, some statistics about the water path
         df.twp <- df %>%
             dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
