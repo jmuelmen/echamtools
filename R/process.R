@@ -487,22 +487,22 @@ postprocess.rad.echam <-
         ##         data.frame(a = l$coefficients[2], b = 10^l$coefficients[1], r2 = summary(l)$adj.r.squared)
         ##     })
         ## saveRDS(df.fits, sprintf("%srad-rain-fits-%s.rds", out.prefix, experiment))
-        ## finally, some statistics about the water path
-        df.twp <- df %>%
-            dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
-            dplyr::mutate(twp = lwp + iwp) %>%
-            tidyr::gather(phase, path, lwp, iwp, twp)
-        df.dist <- df.twp %>%
-            dplyr::mutate(path = log10(pmax(path, 1e-12))) %>%
-            plotutils::discretize(path, seq(-12.05, 1.05, 0.1)) %>%
-            plyr::ddply(~ lat + lon + phase, function(x) {
-                x$path %>%
-                    table(dnn = "path") %>%
-                    transform() %>%
-                    dplyr::transmute(path = as.numeric(as.character(path)),
-                                     n = Freq)
-            })
-        saveRDS(df.dist, sprintf("%srad-lwp-dist-%s.rds", out.prefix, experiment))
+        ## ## finally, some statistics about the water path
+        ## df.twp <- df %>%
+        ##     dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
+        ##     dplyr::mutate(twp = lwp + iwp) %>%
+        ##     tidyr::gather(phase, path, lwp, iwp, twp)
+        ## df.dist <- df.twp %>%
+        ##     dplyr::mutate(path = log10(pmax(path, 1e-12))) %>%
+        ##     plotutils::discretize(path, seq(-12.05, 1.05, 0.1)) %>%
+        ##     plyr::ddply(~ lat + lon + phase, function(x) {
+        ##         x$path %>%
+        ##             table(dnn = "path") %>%
+        ##             transform() %>%
+        ##             dplyr::transmute(path = as.numeric(as.character(path)),
+        ##                              n = Freq)
+        ##     })
+        ## saveRDS(df.dist, sprintf("%srad-lwp-dist-%s.rds", out.prefix, experiment))
         df.lwp.frac <- df %>%
             dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
             dplyr::mutate(lwp.frac = lwp / (lwp + iwp)) %>%
