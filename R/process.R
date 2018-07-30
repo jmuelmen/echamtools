@@ -488,10 +488,10 @@ postprocess.rad.echam <-
         ##     })
         ## saveRDS(df.fits, sprintf("%srad-rain-fits-%s.rds", out.prefix, experiment))
         ## ## finally, some statistics about the water path
-        ## df.twp <- df %>%
-        ##     dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
-        ##     dplyr::mutate(twp = lwp + iwp) %>%
-        ##     tidyr::gather(phase, path, lwp, iwp, twp)
+        df.twp <- df %>%
+            dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
+            dplyr::mutate(twp = lwp + iwp) %>%
+            tidyr::gather(phase, path, lwp, iwp, twp)
         ## df.dist <- df.twp %>%
         ##     dplyr::mutate(path = log10(pmax(path, 1e-12))) %>%
         ##     plotutils::discretize(path, seq(-12.05, 1.05, 0.1)) %>%
@@ -503,18 +503,18 @@ postprocess.rad.echam <-
         ##                              n = Freq)
         ##     })
         ## saveRDS(df.dist, sprintf("%srad-lwp-dist-%s.rds", out.prefix, experiment))
-        df.lwp.frac <- df %>%
-            dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
-            dplyr::mutate(lwp.frac = lwp / (lwp + iwp)) %>%
-            plotutils::discretize(lwp.frac, seq(-0.005, 1.005, 0.01)) %>%
-            plyr::ddply(~ lat + lon, function(x) {
-                x$lwp.frac %>%
-                    table(dnn = "lwp.frac") %>%
-                    transform() %>%
-                    dplyr::transmute(path = as.numeric(as.character(lwp.frac)),
-                                     n = Freq)
-            })
-        saveRDS(df.lwp.frac, sprintf("%srad-lwp-frac-%s.rds", out.prefix, experiment))
+        ## df.lwp.frac <- df %>%
+        ##     dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
+        ##     dplyr::mutate(lwp.frac = lwp / (lwp + iwp)) %>%
+        ##     plotutils::discretize(lwp.frac, seq(-0.005, 1.005, 0.01)) %>%
+        ##     plyr::ddply(~ lat + lon, function(x) {
+        ##         x$lwp.frac %>%
+        ##             table(dnn = "lwp.frac") %>%
+        ##             transform() %>%
+        ##             dplyr::transmute(path = as.numeric(as.character(lwp.frac)),
+        ##                              n = Freq)
+        ##     })
+        ## saveRDS(df.lwp.frac, sprintf("%srad-lwp-frac-%s.rds", out.prefix, experiment))
         df.stats <- df.twp %>%
             plyr::ddply(~ lat + lon + phase, function(x) {
                 s <- summary(x$path) 
