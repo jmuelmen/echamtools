@@ -478,8 +478,8 @@ postprocess.rad.echam <-
             dplyr::filter(xivi + xlvi > 1e-3, aprl > 1e-7) %>%
             ## mutate(phase = "any") %>%
             dplyr::mutate(xlvi.frac = xlvi / (xlvi + xivi)) %>%
-            dplyr::mutate(xlvi.frac = plotutils::discretize(xlvi.frac,
-                                                            c(0, 0.67, 0.8, 0.88, 0.93, 0.97, 0.99, 1))) %>%
+            plotutils::discretize(xlvi.frac,
+                                  c(0, 0.67, 0.8, 0.88, 0.93, 0.97, 0.99, 1)) %>%
             ## mutate(phase = factor(ifelse(xlvi / (xlvi + xivi) > 0.9, "liquid",
             ##                       ifelse(xlvi / (xlvi + xivi) < 0.1, "ice",
             ##                              "mixed")),
