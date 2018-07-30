@@ -495,7 +495,7 @@ postprocess.rad.echam <-
         df.dist <- df.twp %>%
             dplyr::mutate(path = log10(pmax(path, 1e-12))) %>%
             plotutils::discretize(path, seq(-12.05, 1.05, 0.1)) %>%
-            ddply(~ lat + lon + phase, function(x) {
+            plyr::ddply(~ lat + lon + phase, function(x) {
                 x$path %>%
                     table(dnn = "path") %>%
                     transform() %>%
@@ -507,7 +507,7 @@ postprocess.rad.echam <-
             dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
             dplyr::mutate(lwp.frac = lwp / (lwp + iwp)) %>%
             plotutils::discretize(lwp.frac, seq(-0.005, 1.005, 0.01)) %>%
-            ddply(~ lat + lon, function(x) {
+            plyr::ddply(~ lat + lon, function(x) {
                 x$lwp.frac %>%
                     table(dnn = "lwp.frac") %>%
                     transform() %>%
@@ -516,7 +516,7 @@ postprocess.rad.echam <-
             })
         saveRDS(df.lwp.frac, sprintf("%srad-lwp-frac-%s.rds", out.prefix, experiment))
         df.stats <- df.twp %>%
-            ddply(~ lat + lon + phase, function(x) {
+            plyr::ddply(~ lat + lon + phase, function(x) {
                 s <- summary(x$path) 
                 data.frame(stat = c(names(s), "sd"), val = c(as.vector(s), sd(x$path)))
             })
