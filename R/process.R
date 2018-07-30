@@ -511,7 +511,7 @@ postprocess.rad.echam <-
                 x$lwp.frac %>%
                     table(dnn = "lwp.frac") %>%
                     transform() %>%
-                    dplyr::transmute(path = as.numeric(as.character(path)),
+                    dplyr::transmute(path = as.numeric(as.character(lwp.frac)),
                                      n = Freq)
             })
         saveRDS(df.lwp.frac, sprintf("%srad-lwp-frac-%s.rds", out.prefix, experiment))
