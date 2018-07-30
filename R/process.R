@@ -461,17 +461,66 @@ postprocess.rad.echam <-
              subsample = NULL) { ## the vast majority of these arguments gets ignored
         in.name <- sprintf("%srad-%s.rds", out.prefix, experiment)
         df <- try(readRDS(in.name), silent = TRUE)
-        df %<>%
-            plyr::ddply(~ lon + lat, function(x) {
-                x %>%
-                    dplyr::mutate(cldlif.inst = (xlvi + xivi) / aprl,
-                                  cldlifliq.inst = xlvi / aprl,
-                                  cldlifice.inst = xivi / aprl) %>%
-                    colMeans() %>%
-                    t() %>%
-                    transform()
+        ## ## first, do a straight-up time mean
+        ## df.summary <- df %>%
+        ##     plyr::ddply(~ lon + lat, function(x) {
+        ##         x %>%
+        ##             dplyr::mutate(cldlif.inst = (xlvi + xivi) / aprl,
+        ##                           cldlifliq.inst = xlvi / aprl,
+        ##                           cldlifice.inst = xivi / aprl) %>%
+        ##             colMeans() %>%
+        ##             t() %>%
+        ##             transform()
+        ##     })
+        ## saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
+        ## then try a power law fit of the precip to total water path 
+        df.fits <- df %>%
+            dplyr::filter(xivi + xlvi > 1e-3, aprl > 1e-7) %>%
+            ## mutate(phase = "any") %>%
+            dplyr::mutate(xlvi.frac = cut(xlvi / (xlvi + xivi), seq(-0.05, 1.05, by = 0.1))) %>%
+            ## mutate(phase = factor(ifelse(xlvi / (xlvi + xivi) > 0.9, "liquid",
+            ##                       ifelse(xlvi / (xlvi + xivi) < 0.1, "ice",
+            ##                              "mixed")),
+            ##                       levels = c("ice", "mixed", "liquid"))) %>%
+            plyr::ddply(~ lat + lon + xlvi.frac, function(x) {
+                l <- lm(log10(aprl) ~ log10(xlvi + xivi), x)
+                data.frame(a = l$coefficients[2], b = 10^l$coefficients[1], r2 = summary(l)$adj.r.squared)
             })
-        saveRDS(df, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
+        saveRDS(df.fits, sprintf("%srad-rain-fits-%s.rds", out.prefix, experiment))
+        ## finally, some statistics about the water path
+        df.twp <- df %>%
+            dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
+            dplyr::mutate(twp = lwp + iwp) %>%
+            tidyr::gather(phase, path, lwp, iwp, twp)
+        df.dist <- df.twp %>%
+            dplyr::mutate(path = log10(pmax(path, 1e-12))) %>%
+            plotutils::discretize(path, seq(-12.05, 1.05, 0.1)) %>%
+            ddply(~ lat + lon + phase, function(x) {
+                x$path %>%
+                    table(dnn = "path") %>%
+                    transform() %>%
+                    dplyr::transmute(path = as.numeric(as.character(path)),
+                                     n = Freq)
+            })
+        saveRDS(df.dist, sprintf("%srad-lwp-dist-%s.rds", out.prefix, experiment))
+        df.lwp.frac <- df %>%
+            dplyr::select(lat, lon, lwp = xlvi, iwp = xivi) %>%
+            dplyr::mutate(lwp.frac = lwp / (lwp + iwp)) %>%
+            plotutils::discretize(lwp.frac, seq(-0.005, 1.005, 0.01)) %>%
+            ddply(~ lat + lon, function(x) {
+                x$lwp.frac %>%
+                    table(dnn = "lwp.frac") %>%
+                    transform() %>%
+                    dplyr::transmute(path = as.numeric(as.character(path)),
+                                     n = Freq)
+            })
+        saveRDS(df.lwp.frac, sprintf("%srad-lwp-frac-%s.rds", out.prefix, experiment))
+        df.stats <- df.twp %>%
+            ddply(~ lat + lon + phase, function(x) {
+                s <- summary(x$path) 
+                data.frame(stat = c(names(s), "sd"), val = c(as.vector(s), sd(x$path)))
+            })
+        saveRDS(df.stats, sprintf("%srad-lwp-stats-%s.rds", out.prefix, experiment))
     }
 
 
