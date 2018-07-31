@@ -479,8 +479,9 @@ postprocess.rad.echam <-
             ## mutate(phase = "any") %>%
             dplyr::mutate(xlvi.frac = xlvi / (xlvi + xivi)) %>%
             plotutils::discretize(xlvi.frac,
-                                  ## septiles, roughly: c(0, 0.67, 0.8, 0.88, 0.93, 0.97, 0.99, 1)) %>%
-                                  seq(-0.005, 1.005, 0.01)) %>%
+                                  ## ## septiles, roughly:
+                                  ## c(0, 0.67, 0.8, 0.88, 0.93, 0.97, 0.99, 1)) %>%
+                                  c(0, 0.1, 0.5, 0.7, 0.75, 0.8, seq(0.85, 1, 0.01))) %>%
             ## mutate(phase = factor(ifelse(xlvi / (xlvi + xivi) > 0.9, "liquid",
             ##                       ifelse(xlvi / (xlvi + xivi) < 0.1, "ice",
             ##                              "mixed")),
