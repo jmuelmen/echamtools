@@ -473,7 +473,7 @@ postprocess.rad.echam <-
                     colMeans() %>%
                     t() %>%
                     transform()
-            }, .progress = "text", .parallel = FALSE)
+            }, .progress = "text", .parallel = TRUE)
         saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
         ## then try a power law fit of the precip to total water path 
         df.fits <- df %>%
