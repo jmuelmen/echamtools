@@ -457,9 +457,10 @@ postprocess.rad.echam <-
     function(datadir = "/work/bb0839/b380126/mpiesm-1.2.00p1/src/echam/experiments",
              experiment = "amip-rain-15", out.prefix = "",
              years = 1979:1983,
-             ncores = 12,
+             ncores = 36,
              flux = TRUE,
              subsample = NULL) { ## the vast majority of these arguments gets ignored
+        doParallel::registerDoParallel(cores = ncores)
         in.name <- sprintf("%srad-%s.rds", out.prefix, experiment)
         df <- try(readRDS(in.name), silent = TRUE)
         ## first, do a straight-up time mean
@@ -472,7 +473,7 @@ postprocess.rad.echam <-
                     colMeans() %>%
                     t() %>%
                     transform()
-            })
+            }, .progress = "text", .parallel = FALSE)
         saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
         ## then try a power law fit of the precip to total water path 
         df.fits <- df %>%
