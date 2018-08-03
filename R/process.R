@@ -202,19 +202,20 @@ postprocess.precip.cosp.profile.echam <-
              ncores = 36,
              flux = TRUE,
              subsample = NULL) {
-
+        doParallel::registerDoParallel(cores = ncores)
         in.name <- sprintf("%scosp-summary-%s.rds", out.prefix, experiment)
         df <- try(readRDS(in.name), silent = TRUE)
         if (class(df) != "try-error") {
             df %<>%
-                dplyr::group_by(lon, lat) %>%
-                dplyr::summarize(n.cold.drizzle = sum(cold.drizzle, na.rm = TRUE),
-                                 n.warm.drizzle = sum(!cold.drizzle, na.rm = TRUE),
-                                 n.no.drizzle = sum(is.na(cold.drizzle)),
-                                 n.cold.rain = sum(cold.rain, na.rm = TRUE),
-                                 n.warm.rain = sum(!cold.rain, na.rm = TRUE),
-                                 n.no.rain = sum(is.na(cold.rain))) %>%
-                dplyr::ungroup()
+                plyr::ddply(~ year + month + lon + lat, function(x) {
+                    x %>%
+                        dplyr::summarize(n.cold.drizzle = sum(cold.drizzle, na.rm = TRUE),
+                                         n.warm.drizzle = sum(!cold.drizzle, na.rm = TRUE),
+                                         n.no.drizzle = sum(is.na(cold.drizzle)),
+                                         n.cold.rain = sum(cold.rain, na.rm = TRUE),
+                                         n.warm.rain = sum(!cold.rain, na.rm = TRUE),
+                                         n.no.rain = sum(is.na(cold.rain)))
+                }, .parallel = TRUE)
             saveRDS(df, sprintf("%scosp-counts-%s.rds", out.prefix, experiment))
             df
         }
@@ -461,18 +462,18 @@ postprocess.rad.echam <-
              subsample = NULL) { ## the vast majority of these arguments gets ignored
         in.name <- sprintf("%srad-%s.rds", out.prefix, experiment)
         df <- try(readRDS(in.name), silent = TRUE)
-        ## ## first, do a straight-up time mean
-        ## df.summary <- df %>%
-        ##     plyr::ddply(~ lon + lat, function(x) {
-        ##         x %>%
-        ##             dplyr::mutate(cldlif.inst = (xlvi + xivi) / aprl,
-        ##                           cldlifliq.inst = xlvi / aprl,
-        ##                           cldlifice.inst = xivi / aprl) %>%
-        ##             colMeans() %>%
-        ##             t() %>%
-        ##             transform()
-        ##     })
-        ## saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
+        ## first, do a straight-up time mean
+        df.summary <- df %>%
+            plyr::ddply(~ year + month + lon + lat, function(x) {
+                x %>%
+                    dplyr::mutate(cldlif.inst = (xlvi + xivi) / aprl,
+                                  cldlifliq.inst = xlvi / aprl,
+                                  cldlifice.inst = xivi / aprl) %>%
+                    colMeans() %>%
+                    t() %>%
+                    transform()
+            })
+        saveRDS(df.summary, sprintf("%srad-summary-%s.rds", out.prefix, experiment))
         ## then try a power law fit of the precip to total water path 
         df.fits <- df %>%
             dplyr::filter(xivi + xlvi > 1e-3, xlvi > 0, aprl > 1e-7) %>%
