@@ -88,18 +88,19 @@ get.cosp.counts.echam <- function(ccrauts = c(0, 0.01, 0.1, 1, 2, 3.75, 7.5, 15,
                             cautalpha = cautalpha,
                             cautbeta = cautbeta),
                 ~ ccraut + ccauloc + creth + cautalpha + cautbeta,
-                function(df)
+                function(df) {
                     with(df, {
                         experiment <- expname(ccraut, ccauloc, creth,
                                               cautalpha, cautbeta, amip, pi, nocosp = FALSE, nudged, daily, three.hourly)
                         readRDS(sprintf("%s/cosp-counts-%s.rds", path, experiment)) %>%
+                            dplyr::ungroup() %>%
                             dplyr::mutate(ccraut = ccraut,
                                           ccauloc = ccauloc,
                                           creth = creth,
                                           cautalpha = cautalpha,
                                           cautbeta = cautbeta,
                                           pi_pd = ifelse(pi, "PI", "PD"))
-                    }))
+                    })})
 }
 
 #' @export
