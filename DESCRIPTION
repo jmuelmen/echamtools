@@ -1,6 +1,6 @@
 Package: echamtools
 Title: Tools to process ECHAM(-HAM) output
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: person("Johannes", "Muelmenstaedt", email = "johannes.muelmenstaedt@uni-leipzig.de", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 Depends:
